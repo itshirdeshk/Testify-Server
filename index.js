@@ -6,12 +6,12 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 
 // Import route modules
-import userRoutes from './routes/userRoutes.js';
-import examRoutes from './routes/examRoutes.js';
-import subcategoryExamRoutes from './routes/subcategoryexamRoutes.js';
+import userRoutes from './routes/UserRoutes.js';
+import examRoutes from './routes/ExamRoutes.js';
+import subcategoryExamRoutes from './routes/SubCategoryExamRoutes.js';
 import adminRoutes from './routes/AdminRoutes.js';
-import mockTestsRoutes from './routes/mocktestsRoutes.js';
-import generalRoutes from './routes/generalRoutes.js';
+import mockTestsRoutes from './routes/MockTestsRoutes.js';
+import generalRoutes from './routes/GeneralRoutes.js';
 
 dotenv.config();
 
