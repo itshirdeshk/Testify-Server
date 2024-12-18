@@ -1,5 +1,4 @@
 import express from "express";
-import serverless from "serverless-http"; // Add this import
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -17,13 +16,14 @@ import generalRoutes from './routes/generalRoutes.js';
 dotenv.config();
 
 const app = express();
+const port = process.env.PORT || 8080; // Use PORT in uppercase for environment variables
 const mongodbURI = process.env.MONGOOSE_URI;
 
 // Middleware setup
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(morgan('dev'));
+app.use(morgan('dev')); // Log HTTP requests for better debugging
 
 // Database configuration
 mongoose.connect(mongodbURI)
@@ -45,9 +45,14 @@ app.get('/', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    if (res.headersSent) {
+        return next(err);
+    }
+    console.error(err.stack); // Log the error stack for debugging
     res.status(500).send({ message: 'Something went wrong!' });
 });
 
-// Export for Vercel serverless
-export default serverless(app);
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is up on port ${port}`);
+});
