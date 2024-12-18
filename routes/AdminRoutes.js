@@ -1,6 +1,6 @@
 import express from 'express';
 import { registerAdmin, loginAdmin, getAdminProfile, updateAdminProfile } from '../controllers/AdminAuthController.js';
-import { getUserbyId, getAllUsers, updateUser, deleteUserById, updateUserProfilePicture } from '../controllers/UserController.js'
+import { getUserbyId, getAllUsers, updateUser, deleteUserById } from '../controllers/UserController.js'
 import {
     createExam,
     deleteExam,
@@ -20,7 +20,7 @@ import { getMockTestsByTestSeriesId } from '../controllers/MockTestController.js
 import { createTestSeries, deleteTestSeries, getAllTestSeries, getTestSeriesById, getTestSeriesBySubCategoryId, updateTestseries } from '../controllers/TestSeriesController.js';
 import { createTest, deleteTest, getAllTest, getTestById, getTestByMockTestId, updateTest } from '../controllers/TestController.js';
 import { createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
-import { createSubcategory, deleteSubcategory, getAllSubcategories, getSubcategoryById, updateSubcategory } from '../controllers/subCategoryExamController.js';
+import { createSubcategory, deleteSubcategory, getAllSubcategories, getSubcategoryById, updateSubcategory } from '../controllers/SubCategoryExamController.js';
 import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId, updateScore } from '../controllers/ScoreController.js';
 import { upload } from '../middlewares/multer.js';
 

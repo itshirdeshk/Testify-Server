@@ -3,7 +3,7 @@ import express from 'express';
 import {
     getSubcategoryById,
     getAllSubcategories
-} from '../controllers/subCategoryExamController.js';
+} from '../controllers/SubCategoryExamController.js';
 import checkUserAuth from '../middlewares/auth-middleware.js';
 
 const router = express.Router();

@@ -10,7 +10,7 @@ import userRoutes from './routes/UserRoutes.js';
 import examRoutes from './routes/ExamRoutes.js';
 import subcategoryExamRoutes from './routes/SubCategoryExamRoutes.js';
 import adminRoutes from './routes/AdminRoutes.js';
-import mockTestsRoutes from './routes/MockTestsRoutes.js';
+import mockTestsRoutes from './routes/MockTestRoutes.js';
 import generalRoutes from './routes/GeneralRoutes.js';
 
 dotenv.config();
