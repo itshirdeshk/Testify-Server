@@ -378,6 +378,6 @@ const updateUserFields = (user, updates) => {
     if (updates.email) user.email = updates.email;
     if (updates.phone) user.phone = updates.phone;
     if (updates.profilePicture) user.profilePicture = updates.profilePicture;
-    if (updates.examId) user.examId = updates.examId;
-    if (updates.subExamId) user.subExamId = updates.subExamId;
+    if (updates.examId) user.exam = updates.examId;
+    if (updates.subExamId) user.subExam = updates.subExamId;
 };
