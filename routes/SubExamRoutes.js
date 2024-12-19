@@ -2,8 +2,9 @@
 import express from 'express';
 import {
     getSubcategoryById,
-    getAllSubcategories
-} from '../controllers/SubCategoryExamController.js';
+    getAllSubcategories,
+    getSubcategoriesByExamId
+} from '../controllers/SubExamController.js';
 import checkUserAuth from '../middlewares/auth-middleware.js';
 
 const router = express.Router();
@@ -13,4 +14,8 @@ router.get('/:id', checkUserAuth, getSubcategoryById);
 
 // GET /api/subcategories
 router.get('/', checkUserAuth, getAllSubcategories);
+
+// GET /api/subcategories
+router.get('/subExam/:examId', checkUserAuth, getSubcategoriesByExamId);
+
 export default router;

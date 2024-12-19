@@ -319,7 +319,7 @@ export const userPasswordReset = async (req, res) => {
 };
 
 export const updateLoggedInUserProfile = async (req, res) => {
-    const { name, email, phone, examId } = req.body;
+    const { name, email, phone, examId, subExamId } = req.body;
     const userId = req.user._id;
     const image = req.file?.buffer;
 
@@ -331,7 +331,7 @@ export const updateLoggedInUserProfile = async (req, res) => {
         }
 
         // Prepare updates object
-        const updates = { name, email, phone, examId };
+        const updates = { name, email, phone, examId, subExamId };
 
         if (image) {
             const stream = cloudinary.v2.uploader.upload_stream({
@@ -379,4 +379,5 @@ const updateUserFields = (user, updates) => {
     if (updates.phone) user.phone = updates.phone;
     if (updates.profilePicture) user.profilePicture = updates.profilePicture;
     if (updates.examId) user.examId = updates.examId;
+    if (updates.subExamId) user.subExamId = updates.subExamId;
 };

@@ -8,10 +8,10 @@ import mongoose from "mongoose";
 // Import route modules
 import userRoutes from './routes/UserRoutes.js';
 import examRoutes from './routes/ExamRoutes.js';
-import subcategoryExamRoutes from './routes/SubCategoryExamRoutes.js';
 import adminRoutes from './routes/AdminRoutes.js';
 import mockTestsRoutes from './routes/MockTestRoutes.js';
 import generalRoutes from './routes/GeneralRoutes.js';
+import subExamRoutes from './routes/SubExamRoutes.js'
 
 dotenv.config();
 
@@ -34,7 +34,7 @@ mongoose.connect(mongodbURI)
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use('/api/exam', examRoutes);
-app.use('/api/subcategory', subcategoryExamRoutes);
+app.use('/api/subcategory', subExamRoutes);
 app.use('/api/mocktest', mockTestsRoutes);
 app.use('/api', generalRoutes);
 

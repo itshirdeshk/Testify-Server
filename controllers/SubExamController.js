@@ -1,5 +1,5 @@
 import cloudinary from "../cloudinaryConfig/cloudinaryConfig.js";
-import SubCategoryExamModel from "../models/SubcategoryExamModel.js";
+import SubCategoryExamModel from "../models/SubExamModel.js";
 
 // Subcategory of exams 
 
@@ -122,8 +122,26 @@ export const getAllSubcategories = async (req, res) => {
     try {
         const subcategories = await SubCategoryExamModel.find().populate('exam');
         res.status(200).json({
-            message: 'Subcategories of exams found successfully',
+            message: 'Subcategories of exam found successfully',
             subcategory: subcategories
+        });
+    } catch (error) {
+        console.error('Error fetching subcategories:', error);
+        res.status(500).json({
+            message: 'Failed to get subcategories',
+            error: error.message
+        });
+    }
+};
+
+// Get Subcategories by Exam ID
+export const getSubcategoriesByExamId = async (req, res) => {
+    try {
+        const { examId } = req.params;
+        const subcategories = await SubCategoryExamModel.find({ examId: examId });
+        res.status(200).json({
+            message: 'Subcategories of exam found successfully',
+            subcategories
         });
     } catch (error) {
         console.error('Error fetching subcategories:', error);

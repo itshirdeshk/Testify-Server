@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-const SubCategoryExamSchema = new Schema(
+const SubExamSchema = new Schema(
     {
         name: {
             type: String,
@@ -24,6 +24,6 @@ const SubCategoryExamSchema = new Schema(
     { timestamps: true }
 );
 
-const SubCategoryExamModel = mongoose.model('SubCategoryExam', SubCategoryExamSchema);
+const SubExamModel = mongoose.model('SubExam', SubExamSchema);
 
-export default SubCategoryExamModel;
+export default SubExamModel;

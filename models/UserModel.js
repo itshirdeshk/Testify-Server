@@ -40,6 +40,10 @@ const UserSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Exam",
     },
+    subExamId: {
+      type: Schema.Types.ObjectId,
+      ref: "SubExam",
+    },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt fields
 );
