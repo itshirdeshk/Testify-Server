@@ -36,11 +36,11 @@ const UserSchema = new Schema(
     profilePicture: {
       type: String,
     },
-    examId: {
+    exam: {
       type: Schema.Types.ObjectId,
       ref: "Exam",
     },
-    subExamId: {
+    subExam: {
       type: Schema.Types.ObjectId,
       ref: "SubExam",
     },

@@ -34,8 +34,8 @@ mongoose.connect(mongodbURI)
 app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use('/api/exam', examRoutes);
-app.use('/api/subcategory', subExamRoutes);
-app.use('/api/mocktest', mockTestsRoutes);
+app.use('/api/subExam', subExamRoutes);
+app.use('/api/mockTest', mockTestsRoutes);
 app.use('/api', generalRoutes);
 
 // Root route

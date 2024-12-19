@@ -20,7 +20,7 @@ import { getMockTestsByTestSeriesId } from '../controllers/MockTestController.js
 import { createTestSeries, deleteTestSeries, getAllTestSeries, getTestSeriesById, getTestSeriesBySubCategoryId, updateTestseries } from '../controllers/TestSeriesController.js';
 import { createTest, deleteTest, getAllTest, getTestById, getTestByMockTestId, updateTest } from '../controllers/TestController.js';
 import { createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
-import { createSubcategory, deleteSubcategory, getAllSubcategories, getSubcategoryById, updateSubcategory } from '../controllers/SubExamController.js';
+import { createSubExam, deleteSubExam, getAllSubExams, getSubExamById, getSubExamsByExamId, updateSubExam } from '../controllers/SubExamController.js';
 import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId, updateScore } from '../controllers/ScoreController.js';
 import { upload } from '../middlewares/multer.js';
 
@@ -56,21 +56,24 @@ router.get('/all/exams', checkAdminAuth, getAllExams);
 
 
 
-// subcategories
-// POST /api/subcategories
-router.post('/add/subcategoryExam', upload.single('image'), checkAdminAuth, createSubcategory);
+// subExam
+// POST /api/subExam
+router.post('/add/subExam', upload.single('image'), checkAdminAuth, createSubExam);
 
-// PUT /api/subcategories/:id
-router.put('/updateSubcategoryExamById/:id', upload.single('image'), checkAdminAuth, updateSubcategory);
+// PUT /api/subExam/:id
+router.put('/updateSubExamById/:id', upload.single('image'), checkAdminAuth, updateSubExam);
 
-// DELETE /api/subcategories/:id
-router.delete('/deleteSubcategoryExamById/:id', checkAdminAuth, deleteSubcategory);
+// DELETE /api/subExam/:id
+router.delete('/deleteSubExamById/:id', checkAdminAuth, deleteSubExam);
 
-// GET /api/subcategories/:id
-router.get('/getSubcategoryExamById/:id', checkAdminAuth, getSubcategoryById);
+// GET /api/subExam/:id
+router.get('/getSubExamById/:id', checkAdminAuth, getSubExamById);
 
-// GET /api/subcategories
-router.get('/all/subcategoryExams', checkAdminAuth, getAllSubcategories);
+// GET /api/subExam
+router.get('/all/subExams', checkAdminAuth, getAllSubExams);
+
+// GET /api/subExam/:examId
+router.get('/getSubExamsByExamId/:examId', checkAdminAuth, getSubExamsByExamId);
 
 
 

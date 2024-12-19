@@ -1,10 +1,10 @@
 import cloudinary from "../cloudinaryConfig/cloudinaryConfig.js";
-import SubCategoryExamModel from "../models/SubExamModel.js";
+import SubExamModel from "../models/SubExamModel.js";
 
 // Subcategory of exams 
 
 // Create a new subcategory
-export const createSubcategory = async (req, res) => {
+export const createSubExam = async (req, res) => {
     const { name, description, examId } = req.body;
     const imageFile = req.file.buffer; // Use buffer instead of path
 
@@ -14,8 +14,8 @@ export const createSubcategory = async (req, res) => {
         if (imageFile) {
             // Upload image to Cloudinary
             const stream = cloudinary.v2.uploader.upload_stream({
-                folder: 'subcategory_images', // Optional: specify a folder in Cloudinary
-                public_id: `subcategory_${Date.now()}`, // Optional: specify a public ID (unique identifier)
+                folder: 'subExam_images', // Optional: specify a folder in Cloudinary
+                public_id: `subExam_${Date.now()}`, // Optional: specify a public ID (unique identifier)
                 overwrite: true // Overwrite existing image with the same public ID
             }, async (error, result) => {
                 if (error) {
@@ -24,27 +24,27 @@ export const createSubcategory = async (req, res) => {
                 }
                 imageUrl = result.secure_url; // Set the image URL after upload
 
-                const subcategory = await SubCategoryExamModel.create({
+                const subExam = await SubExamModel.create({
                     name,
                     image: imageUrl,
                     description,
-                    exam: examId // Assign exam ID to the subcategory
+                    exam: examId // Assign exam ID to the subExam
                 });
 
-                res.status(201).json({ message: 'Subcategory created successfully', subcategory });
+                res.status(201).json({ message: 'SubExam created successfully', subExam });
             })
             stream.end(imageFile); // End the stream with the image buffer
         } else {
-            res.status(500).json({ message: 'Failed to create subcategory', error: 'Image file is required' });
+            res.status(500).json({ message: 'Failed to create subExam', error: 'Image file is required' });
         }
     } catch (error) {
-        console.error('Failed to create subcategory:', error);
-        res.status(500).json({ message: 'Failed to create subcategory', error: error.message });
+        console.error('Failed to create subExam:', error);
+        res.status(500).json({ message: 'Failed to create subExam', error: error.message });
     }
 };
 
 // Update an existing subcategory by ID
-export const updateSubcategory = async (req, res) => {
+export const updateSubExam = async (req, res) => {
     const { id } = req.params;
     const { ...updatedData } = req.body;
     const imageFile = req.file?.buffer; // Handle case where image might not be provided
@@ -56,8 +56,8 @@ export const updateSubcategory = async (req, res) => {
         if (imageFile) {
             // Upload new image to Cloudinary
             const stream = cloudinary.v2.uploader.upload_stream({
-                folder: 'subcategory_images', // Optional: specify a folder in Cloudinary
-                public_id: `subcategory_${id}`, // Optional: specify a public ID (unique identifier)
+                folder: 'subExam_images', // Optional: specify a folder in Cloudinary
+                public_id: `subExam_${id}`, // Optional: specify a public ID (unique identifier)
                 overwrite: true // Overwrite existing image with the same public ID
             }, async (error, result) => {
                 if (error) {
@@ -66,15 +66,15 @@ export const updateSubcategory = async (req, res) => {
                 }
                 updateFields.image = result?.secure_url; // Set the new image URL
 
-                const updatedSubcategory = await SubCategoryExamModel.findByIdAndUpdate(id, updateFields, { new: true });
+                const updatedSubExam = await SubExamModel.findByIdAndUpdate(id, updateFields, { new: true });
 
-                res.status(200).json({ message: 'Subcategory updated successfully', updatedSubcategory });
+                res.status(200).json({ message: 'SubExam updated successfully', updatedSubExam });
             });
             stream.end(imageFile); // End the stream with the image buffer
         } else {
-            const updatedSubcategory = await SubCategoryExamModel.findByIdAndUpdate(id, updateFields, { new: true });
+            const updatedSubExam = await SubExamModel.findByIdAndUpdate(id, updateFields, { new: true });
 
-            res.status(200).json({ message: 'Subcategory updated successfully', updatedSubcategory });
+            res.status(200).json({ message: 'SubExam updated successfully', updatedSubExam });
         }
     } catch (error) {
         console.error('Failed to update subcategory:', error);
@@ -82,71 +82,71 @@ export const updateSubcategory = async (req, res) => {
     }
 };
 
-export const deleteSubcategory = async (req, res) => {
+export const deleteSubExam = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const subcategory = await SubCategoryExamModel.findById(id);
-        if (!subcategory) {
-            return res.status(404).json({ message: 'Subcategory not found' });
+        const subExam = await SubExamModel.findById(id);
+        if (!subExam) {
+            return res.status(404).json({ message: 'SubExam not found' });
         }
 
-        await SubCategoryExamModel.findByIdAndDelete(id);
+        await SubExamModel.findByIdAndDelete(id);
 
-        res.status(200).json({ message: 'Subcategory deleted successfully' });
+        res.status(200).json({ message: 'SubExam deleted successfully' });
     } catch (error) {
-        console.error('Failed to delete Subcategory:', error);
-        res.status(500).json({ message: 'Failed to delete Subcategory', error });
+        console.error('Failed to delete SubExam:', error);
+        res.status(500).json({ message: 'Failed to delete SubExam', error });
     }
 };
 
-export const getSubcategoryById = async (req, res) => {
+export const getSubExamById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const subcategory = await SubCategoryExamModel.findById(id);
+        const subExam = await SubExamModel.findById(id);
 
-        if (!subcategory) {
-            return res.status(404).json({ message: 'Subcategory not found' });
+        if (!subExam) {
+            return res.status(404).json({ message: 'SubExam not found' });
         }
 
-        res.status(200).json({ message: 'Subcategory found successfully', subcategory });
+        res.status(200).json({ message: 'SubExam found successfully', subExam });
     } catch (error) {
-        console.error('Error fetching Subcategory:', error);
-        res.status(500).json({ message: 'Failed to get Subcategory', error });
+        console.error('Error fetching SubExam:', error);
+        res.status(500).json({ message: 'Failed to get SubExam', error });
     }
 };
 
 // Get all subcategories
-export const getAllSubcategories = async (req, res) => {
+export const getAllSubExams = async (req, res) => {
     try {
-        const subcategories = await SubCategoryExamModel.find().populate('exam');
+        const subExams = await SubExamModel.find();
         res.status(200).json({
-            message: 'Subcategories of exam found successfully',
-            subcategory: subcategories
+            message: 'SubExams found successfully',
+            subExam: subExams
         });
     } catch (error) {
-        console.error('Error fetching subcategories:', error);
+        console.error('Error fetching SubExams:', error);
         res.status(500).json({
-            message: 'Failed to get subcategories',
+            message: 'Failed to get SubExams',
             error: error.message
         });
     }
 };
 
 // Get Subcategories by Exam ID
-export const getSubcategoriesByExamId = async (req, res) => {
+export const getSubExamsByExamId = async (req, res) => {
     try {
         const { examId } = req.params;
-        const subcategories = await SubCategoryExamModel.find({ examId: examId });
+        const subExams = await SubExamModel.find({ exam: examId });
         res.status(200).json({
-            message: 'Subcategories of exam found successfully',
-            subcategories
+            message: 'SubExams found successfully',
+            subExams
         });
     } catch (error) {
-        console.error('Error fetching subcategories:', error);
+        console.error('Error fetching SubExams:', error);
         res.status(500).json({
-            message: 'Failed to get subcategories',
+            message: 'Failed to get SubExams',
             error: error.message
         });
     }
