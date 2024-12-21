@@ -1,31 +1,39 @@
+import cloudinary from '../cloudinaryConfig/cloudinaryConfig.js';
 import TestSeriesModel from '../models/TestSeriesModel.js';
 
 // Test Series Controller
 
 // Create a new Test Series
 export const createTestSeries = async (req, res) => {
-    const { name, totalTests, subCategoryId, freeTests } = req.body;
-    const imageFile = req.file?.path;
+    const { name, totalTests, subExamId, freeTests } = req.body;
+    const imageFile = req.file.buffer;
 
     try {
-        const result = await cloudinary.v2.uploader.upload(imageFile, {
+        const stream = cloudinary.v2.uploader.upload_stream({
             folder: 'testSeries_images',
             public_id: `testSeries_${Date.now()}`,
             overwrite: true // Overwrite existing image with the same public ID
-        });
+        }, async (error, result) => {
+            if (error) {
+                console.error('Cloudinary upload error:', error);
+                return res.status(500).json({ status: 'failed', message: 'Image upload failed' });
+            }
 
-        const testSeries = await TestSeriesModel.create({
-            name,
-            image: result.secure_url,
-            totalTests,
-            subCategory: subCategoryId,
-            freeTests
-        });
+            const testSeries = await TestSeriesModel.create({
+                name,
+                image: result.secure_url,
+                totalTests,
+                subExam: subExamId,
+                freeTests
+            });
 
-        res.status(201).json({ message: 'TestSeries created successfully', testSeries });
+            res.status(201).json({ message: 'TestSeries created successfully', testSeries });
+        })
+
+        stream.end(imageFile);
     } catch (error) {
-        console.error('Failed to create TestSeries:', error);
         res.status(500).json({ message: 'Failed to create TestSeries', error });
+        console.error('Failed to create TestSeries:', error);
     }
 };
 
@@ -35,7 +43,7 @@ export const createTestSeries = async (req, res) => {
 export const updateTestseries = async (req, res) => {
     const { id } = req.params;
     const { ...updatedData } = req.body;
-    const imageFile = req.file.path;
+    const imageFile = req.file?.buffer;
 
     try {
 
@@ -47,18 +55,27 @@ export const updateTestseries = async (req, res) => {
         const updateFields = { ...updatedData };
 
         if (imageFile) {
-            const result = await cloudinary.v2.uploader.upload(imageFile, {
+            const stream = cloudinary.v2.uploader.upload_stream({
                 folder: 'testSeries_images',
                 public_id: `testSeries_${id}`,
-                overwrite: true
-            });
+                overwrite: true // Overwrite existing image with the same public ID
+            }, async (error, result) => {
+                if (error) {
+                    console.error('Cloudinary upload error:', error);
+                    return res.status(500).json({ status: 'failed', message: 'Image upload failed' });
+                }
+                updateFields.image = result.secure_url;
 
-            updateFields.image = result.secure_url;
+                const updatedTestSeries = await TestSeriesModel.findByIdAndUpdate(id, updateFields, { new: true });
+
+                res.status(200).json({ message: 'TestSeries updated successfully', updatedTestSeries });
+            })
+            stream.end(imageFile);
+        } else {
+            const updatedTestSeries = await TestSeriesModel.findByIdAndUpdate(id, updateFields, { new: true });
+
+            res.status(200).json({ message: 'TestSeries updated successfully', updatedTestSeries });
         }
-
-        const updatedTestSeries = await TestSeriesModel.findByIdAndUpdate(id, updateFields, { new: true });
-
-        res.status(200).json({ message: 'TestSeries updated successfully', updatedTestSeries });
     } catch (error) {
         console.error('Failed to update TestSeries:', error);
         res.status(500).json({ message: 'Failed to update TestSeries', error });
@@ -83,7 +100,7 @@ export const getTestSeriesById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const TestSeries = await TestSeriesModel.findById(id).populate('subCategory');
+        const TestSeries = await TestSeriesModel.findById(id);
 
         if (!TestSeries) {
             return res.status(404).json({ message: 'TestSeries not found' });
@@ -99,7 +116,7 @@ export const getTestSeriesById = async (req, res) => {
 // Get all TestSeries
 export const getAllTestSeries = async (req, res) => {
     try {
-        const TestSeries = await TestSeriesModel.find().populate('subCategory');
+        const TestSeries = await TestSeriesModel.find();
 
         res.status(200).json({ message: 'TestSeries found successfully', TestSeries });
     } catch (error) {
@@ -109,11 +126,11 @@ export const getAllTestSeries = async (req, res) => {
 };
 
 // Get TestSeries by SubCategory ID
-export const getTestSeriesBySubCategoryId = async (req, res) => {
-    const { subCategoryId } = req.params;
+export const getTestSeriesBySubExamId = async (req, res) => {
+    const { subExamId } = req.params;
 
     try {
-        const TestSeries = await TestSeriesModel.find({ subCategory: subCategoryId });
+        const TestSeries = await TestSeriesModel.find({ subExam: subExamId });
 
         res.status(200).json({ message: 'TestSeries found successfully', TestSeries });
     } catch (error) {

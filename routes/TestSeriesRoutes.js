@@ -1,6 +1,6 @@
 // Test Series Routes
 import express from 'express';
-import { getAllTestSeries, getTestSeriesById, getTestSeriesBySubCategoryId } from '../controllers/TestSeriesController.js';
+import { getAllTestSeries, getTestSeriesById, getTestSeriesBySubExamId } from '../controllers/TestSeriesController.js';
 import checkUserAuth from '../middlewares/auth-middleware.js';
 
 
@@ -13,6 +13,6 @@ router.get('/:id', checkUserAuth, getTestSeriesById);
 router.get('/', checkUserAuth, getAllTestSeries);
 
 // GET /api/getTestSeriessByTestSeriesId/:id    
-router.get('/testSeries/:subCategoryId', checkUserAuth, getTestSeriesBySubCategoryId);
+router.get('/testSeries/:subExamId', checkUserAuth, getTestSeriesBySubExamId);
 
 export default router;

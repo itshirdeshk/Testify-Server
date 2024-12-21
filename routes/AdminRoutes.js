@@ -17,7 +17,7 @@ import {
 } from '../controllers/MockTestController.js';
 import checkAdminAuth from '../middlewares/checkAdminAuth.js';
 import { getMockTestsByTestSeriesId } from '../controllers/MockTestController.js';
-import { createTestSeries, deleteTestSeries, getAllTestSeries, getTestSeriesById, getTestSeriesBySubCategoryId, updateTestseries } from '../controllers/TestSeriesController.js';
+import { createTestSeries, deleteTestSeries, getAllTestSeries, getTestSeriesById, getTestSeriesBySubExamId, updateTestseries } from '../controllers/TestSeriesController.js';
 import { createTest, deleteTest, getAllTest, getTestById, getTestByMockTestId, updateTest } from '../controllers/TestController.js';
 import { createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
 import { createSubExam, deleteSubExam, getAllSubExams, getSubExamById, getSubExamsByExamId, updateSubExam } from '../controllers/SubExamController.js';
@@ -77,12 +77,12 @@ router.get('/getSubExamsByExamId/:examId', checkAdminAuth, getSubExamsByExamId);
 
 
 
-// TestSeries
+// testSeries
 // POST /api/testSeries
-router.post('/add/testSeries', checkAdminAuth, createTestSeries);
+router.post('/add/testSeries', upload.single('image'),checkAdminAuth, createTestSeries);
 
 // PUT /api/testSeries/:id
-router.put('/updateTestSeriesById/:id', checkAdminAuth, updateTestseries);
+router.put('/updateTestSeriesById/:id', upload.single('image'),checkAdminAuth, updateTestseries);
 
 // DELETE /api/testSeries/:id
 router.delete('/deleteTestSeriesById/:id', checkAdminAuth, deleteTestSeries);
@@ -94,7 +94,7 @@ router.get('/getTestSeriesById/:id', checkAdminAuth, getTestSeriesById);
 router.get('/all/testSeries', checkAdminAuth, getAllTestSeries);
 
 // GET /api/getTestSeriessByTestSeriesId/:id
-router.get('/getTestSeriesBySubCategoryId/:subCategoryId', checkAdminAuth, getTestSeriesBySubCategoryId);
+router.get('/getTestSeriesBySubExamId/:subExamId', checkAdminAuth, getTestSeriesBySubExamId);
 
 
 

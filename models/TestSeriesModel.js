@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 const TestSeriesSchema = new Schema(
     {
         name: { type: String, required: true },
-        image: { type: String },
+        image: { type: String ,required: true},
         totalTests: { type: Number, required: true, min: 0 },
         freeTests: { type: Number, required: true, min: 0 },
         subExam: { type: mongoose.Schema.Types.ObjectId, ref: 'SubExam', required: true },

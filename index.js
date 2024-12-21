@@ -12,6 +12,7 @@ import adminRoutes from './routes/AdminRoutes.js';
 import mockTestsRoutes from './routes/MockTestRoutes.js';
 import generalRoutes from './routes/GeneralRoutes.js';
 import subExamRoutes from './routes/SubExamRoutes.js'
+import testSeriesRoutes from './routes/TestSeriesRoutes.js';
 
 dotenv.config();
 
@@ -31,11 +32,14 @@ mongoose.connect(mongodbURI)
     .catch(err => console.error("MongoDB connection error:", err));
 
 // Load Routes
-app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
+
+app.use("/api/user", userRoutes);
 app.use('/api/exam', examRoutes);
 app.use('/api/subExam', subExamRoutes);
+app.use('/api/testSeries', testSeriesRoutes);
 app.use('/api/mockTest', mockTestsRoutes);
+
 app.use('/api', generalRoutes);
 
 // Root route
