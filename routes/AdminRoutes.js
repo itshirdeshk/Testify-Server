@@ -77,6 +77,27 @@ router.get('/getSubExamsByExamId/:examId', checkAdminAuth, getSubExamsByExamId);
 
 
 
+// TestSeries
+// POST /api/testSeries
+router.post('/add/testSeries', checkAdminAuth, createTestSeries);
+
+// PUT /api/testSeries/:id
+router.put('/updateTestSeriesById/:id', checkAdminAuth, updateTestseries);
+
+// DELETE /api/testSeries/:id
+router.delete('/deleteTestSeriesById/:id', checkAdminAuth, deleteTestSeries);
+
+// GET /api/testSeries/:id
+router.get('/getTestSeriesById/:id', checkAdminAuth, getTestSeriesById);
+
+// GET /api/getAllTestSeriess
+router.get('/all/testSeries', checkAdminAuth, getAllTestSeries);
+
+// GET /api/getTestSeriessByTestSeriesId/:id
+router.get('/getTestSeriesBySubCategoryId/:subCategoryId', checkAdminAuth, getTestSeriesBySubCategoryId);
+
+
+
 // mockTest
 // POST /api/mockTest
 router.post('/add/mockTest', checkAdminAuth, createMockTest);
@@ -96,26 +117,6 @@ router.get('/all/mockTest', checkAdminAuth, getAllMockTests);
 // GET /api/getMockTestsByTestSeriesId/:id
 router.get('/getMockTestsByTestSeriesId/:testSeriesId', checkAdminAuth, getMockTestsByTestSeriesId);
 
-
-
-// TestSeries
-// POST /api/testSeries
-router.post('/add/testSeries', checkAdminAuth, createTestSeries);
-
-// PUT /api/testSeries/:id
-router.put('/updateTestSeriesById/:id', checkAdminAuth, updateTestseries);
-
-// DELETE /api/testSeries/:id
-router.delete('/deleteTestSeriesById/:id', checkAdminAuth, deleteTestSeries);
-
-// GET /api/testSeries/:id
-router.get('/getTestSeriesById/:id', checkAdminAuth, getTestSeriesById);
-
-// GET /api/getAllTestSeriess
-router.get('/all/testSeries', checkAdminAuth, getAllTestSeries);
-
-// GET /api/getTestSeriessByTestSeriesId/:id
-router.get('/getTestSeriesBySubCategoryId/:subCategoryId', checkAdminAuth, getTestSeriesBySubCategoryId);
 
 
 
