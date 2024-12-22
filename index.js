@@ -13,7 +13,7 @@ import mockTestsRoutes from './routes/MockTestRoutes.js';
 import generalRoutes from './routes/GeneralRoutes.js';
 import subExamRoutes from './routes/SubExamRoutes.js'
 import testSeriesRoutes from './routes/TestSeriesRoutes.js';
-
+import testRoutes from './routes/TestRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -39,6 +39,7 @@ app.use('/api/exam', examRoutes);
 app.use('/api/subExam', subExamRoutes);
 app.use('/api/testSeries', testSeriesRoutes);
 app.use('/api/mockTest', mockTestsRoutes);
+app.use('/api/test', testRoutes);
 
 app.use('/api', generalRoutes);
 

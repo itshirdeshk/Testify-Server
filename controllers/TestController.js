@@ -1,113 +1,136 @@
 import TestModel from '../models/TestModel.js';
+import MockTestModel from '../models/MockTestModel.js';
+import TestSeriesModel from '../models/TestSeriesModel.js';
+import mongoose from 'mongoose';
+
+// Refactor helper functions at the top
+const updateTestCounts = async ({ mockTest, testSeries, isFree, session, increment = 1 }) => {
+    if (isFree) {
+        mockTest.freeTests += increment;
+        testSeries.freeTests += increment;
+    }
+    await Promise.all([
+        mockTest.save({ session }),
+        testSeries.save({ session })
+    ]);
+};
+
+const getTestRelations = async (mockTestId, session) => {
+    const mockTest = await MockTestModel.findById(mockTestId).session(session);
+    if (!mockTest) throw new Error('MockTest not found');
+
+    const testSeries = await TestSeriesModel.findById(mockTest.testSeries).session(session);
+    if (!testSeries) throw new Error('TestSeries not found');
+
+    return { mockTest, testSeries };
+};
+
+// Add these utility functions at the top
+const handleAsync = async (req, res, operation) => {
+    try {
+        const result = await operation();
+        res.status(result.status || 200).json(result);
+    } catch (error) {
+        res.status(500).json({ 
+            message: error.message || 'Operation failed', 
+            error: error.message 
+        });
+    }
+};
+
+const handleTransaction = async (operation) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
+    try {
+        const result = await operation(session);
+        await session.commitTransaction();
+        return result;
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    } finally {
+        session.endSession();
+    }
+};
 
 // Test Controller
 
 // Create a new Test
-export const createTest = async (req, res) => {
+export const createTest = (req, res) => handleAsync(req, res, async () => {
     const { title, totalQuestions, duration, totalMarks, mockTestId, isFree } = req.body;
+    
+    return handleTransaction(async (session) => {
+        const [test] = await TestModel.create([{
+            title, totalQuestions, duration, totalMarks, mockTest: mockTestId, isFree
+        }], { session });
 
-    try {
-        const test = await TestModel.create({
-            title,
-            totalQuestions,
-            duration,
-            totalMarks,
-            mockTest: mockTestId,
-            isFree
-        });
+        const { mockTest, testSeries } = await getTestRelations(mockTestId, session);
+        mockTest.totalTests += 1;
+        testSeries.totalTests += 1;
+        await updateTestCounts({ mockTest, testSeries, isFree, session, increment: 1 });
 
-        res.status(201).json({ message: 'Test created successfully', test });
-    } catch (error) {
-        console.error('Failed to create Test:', error);
-        res.status(500).json({ message: 'Failed to create Test', error });
+        return { message: 'Test created successfully', test, status: 201 };
+    });
+});
+
+const handleFreeStatusChange = async ({ oldTest, updatedData, session }) => {
+    if (!('isFree' in updatedData) || updatedData.isFree === oldTest.isFree) {
+        return;
     }
+
+    const { mockTest, testSeries } = await getTestRelations(oldTest.mockTest, session);
+    const increment = updatedData.isFree ? 1 : -1;
+    await updateTestCounts({ mockTest, testSeries, isFree: true, session, increment });
 };
 
+// Update an existing Test
+export const updateTest = (req, res) => handleAsync(req, res, async () => {
+    return handleTransaction(async (session) => {
+        const oldTest = await TestModel.findById(req.params.id).session(session);
+        if (!oldTest) throw new Error('Test not found');
 
+        await handleFreeStatusChange({ oldTest, updatedData: req.body, session });
+        const updatedTest = await TestModel.findByIdAndUpdate(
+            req.params.id, req.body, { new: true, session }
+        );
 
-// Update an existing Test by ID
-export const updateTest = async (req, res) => {
-    const { id } = req.params;
-    const { ...updatedData } = req.body;
+        return { message: 'Test updated successfully', updatedTest };
+    });
+});
 
-    try {
-        const test = await TestModel.findById(id);
-        if (!test) {
-            return res.status(404).json({ message: 'Test not found' });
-        }
+// Delete a Test
+export const deleteTest = (req, res) => handleAsync(req, res, async () => {
+    return handleTransaction(async (session) => {
+        const test = await TestModel.findById(req.params.id).session(session);
+        if (!test) throw new Error('Test not found');
 
-        const updatedTest = await TestModel.findByIdAndUpdate(id, updatedData, { new: true });
+        const { mockTest, testSeries } = await getTestRelations(test.mockTest, session);
+        mockTest.totalTests -= 1;
+        testSeries.totalTests -= 1;
+        await updateTestCounts({ mockTest, testSeries, isFree: test.isFree, session, increment: -1 });
+        await TestModel.findByIdAndDelete(req.params.id).session(session);
 
-        res.status(200).json({ message: 'Test updated successfully', updatedTest });
-    } catch (error) {
-        console.error('Failed to update Test:', error);
-        res.status(500).json({ message: 'Failed to update Test', error });
-    }
-};
-
-// Delete a Test by ID
-export const deleteTest = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const test = await TestModel.findById(id);
-        if (!test) {
-            return res.status(404).json({ message: 'Test not found' });
-        }
-
-        await TestModel.findByIdAndDelete(id);
-
-        res.status(200).json({ message: 'Test deleted successfully' });
-    } catch (error) {
-        console.error('Failed to delete Test:', error);
-        res.status(500).json({ message: 'Failed to delete Test', error });
-    }
-};
+        return { message: 'Test deleted successfully' };
+    });
+});
 
 // Get a Test by ID
-export const getTestById = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const test = await TestModel.findById(id);
-
-        if (!test) {
-            return res.status(404).json({ message: 'Test not found' });
-        }
-
-        res.status(200).json({ message: 'Test found successfully', test });
-    } catch (error) {
-        console.error('Error fetching Test:', error);
-        res.status(500).json({ message: 'Failed to get Test', error });
-    }
-};
+export const getTestById = (req, res) => handleAsync(req, res, async () => {
+    const test = await TestModel.findById(req.params.id);
+    if (!test) throw new Error('Test not found');
+    return { message: 'Test found successfully', test };
+});
 
 // Get all Test
-export const getAllTest = async (req, res) => {
-    try {
-        const test = await TestModel.find();
-
-        res.status(200).json({ message: 'Test found successfully', test });
-    } catch (error) {
-        console.error('Error fetching Test:', error);
-        res.status(500).json({ message: 'Failed to get Test', error });
-    }
-};
+export const getAllTest = (req, res) => handleAsync(req, res, async () => {
+    const test = await TestModel.find();
+    return { message: 'Tests found successfully', test };
+});
 
 // Get Test by MockTest ID
-export const getTestByMockTestId = async (req, res) => {
-    const { mockTestId } = req.params;
-
-    try {
-        const test = await TestModel.find({ mockTest: mockTestId });
-
-        if (!test) {
-            return res.status(404).json({ message: 'Test not found' });
-        }
-
-        res.status(200).json({ message: 'Test found successfully', test });
-    } catch (error) {
-        console.error('Error fetching Test:', error);
-        res.status(500).json({ message: 'Failed to get Test', error });
-    }
-};
+export const getTestByMockTestId = (req, res) => handleAsync(req, res, async () => {
+    const test = await TestModel.find({ mockTest: req.params.mockTestId });
+    if (!test) throw new Error('Test not found');
+    return { message: 'Test found successfully', test };
+});

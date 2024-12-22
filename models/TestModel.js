@@ -8,8 +8,8 @@ const TestSchema = new Schema(
         totalQuestions: { type: Number, required: true, min: 1 },
         duration: { type: Number, required: true, min: 1 }, // in minutes
         totalMarks: { type: Number, required: true, min: 1 },
-        mockTest: { type: mongoose.Schema.Types.ObjectId, ref: 'MockTest', required: true },
         isFree: { type: Boolean, required: true },
+        mockTest: { type: mongoose.Schema.Types.ObjectId, ref: 'MockTest', required: true },
     },
     { timestamps: true }
 );
