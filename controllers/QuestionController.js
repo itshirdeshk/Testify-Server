@@ -1,112 +1,130 @@
 import QuestionModel from '../models/QuestionModel.js';
+import TestModel from '../models/TestModel.js';
+import mongoose from 'mongoose';
 
-// Question Controller
+// Utility functions
+const handleAsync = async (req, res, operation) => {
+    try {
+        const result = await operation();
+        res.status(result.status || 200).json(result);
+    } catch (error) {
+        res.status(500).json({ 
+            message: error.message || 'Operation failed', 
+            error: error.message 
+        });
+    }
+};
+
+const handleTransaction = async (operation) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    
+    try {
+        const result = await operation(session);
+        await session.commitTransaction();
+        return result;
+    } catch (error) {
+        await session.abortTransaction();
+        throw error;
+    } finally {
+        session.endSession();
+    }
+};
+
+const updateTestStats = async ({ testId, positiveMarks, session, increment = 1 }) => {
+    const test = await TestModel.findById(testId).session(session);
+    if (!test) throw new Error('Test not found');
+
+    test.totalQuestions += increment;
+    test.totalMarks += (positiveMarks * increment);
+    await test.save({ session });
+};
 
 // Create a new Question
-export const createQuestion = async (req, res) => {
+export const createQuestion = (req, res) => handleAsync(req, res, async () => {
     const { title, options, positiveMarks, negativeMarks, testId } = req.body;
-
-    try {
-        const question = await QuestionModel.create({
+    
+    return handleTransaction(async (session) => {
+        const [question] = await QuestionModel.create([{
             title,
             options,
             positiveMarks,
             negativeMarks,
             test: testId
+        }], { session });
+
+        await updateTestStats({ 
+            testId, 
+            positiveMarks, 
+            session, 
+            increment: 1 
         });
 
-        res.status(201).json({ message: 'Question created successfully', question });
-    } catch (error) {
-        console.error('Failed to create Question:', error);
-        res.status(500).json({ message: 'Failed to create Question', error });
-    }
-};
+        return { 
+            message: 'Question created successfully', 
+            question, 
+            status: 201 
+        };
+    });
+});
 
+// Update an existing Question
+export const updateQuestion = (req, res) => handleAsync(req, res, async () => {
+    return handleTransaction(async (session) => {
+        const oldQuestion = await QuestionModel.findById(req.params.id).session(session);
+        if (!oldQuestion) throw new Error('Question not found');
 
-// Update an existing Question by ID
-export const updateQuestion = async (req, res) => {
-    const { id } = req.params;
-    const { ...updatedData } = req.body;
+        // If positive marks are changing, update test total marks
+        if ('positiveMarks' in req.body && req.body.positiveMarks !== oldQuestion.positiveMarks) {
+            const test = await TestModel.findById(oldQuestion.test).session(session);
+            if (!test) throw new Error('Test not found');
 
-    try {
-        const question = await QuestionModel.findById(id);
-        if (!question) {
-            return res.status(404).json({ message: 'Question not found' });
+            test.totalMarks += (req.body.positiveMarks - oldQuestion.positiveMarks);
+            await test.save({ session });
         }
 
-        const updatedQuestion = await QuestionModel.findByIdAndUpdate(id, updatedData, { new: true });
+        const updatedQuestion = await QuestionModel.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, session }
+        );
 
-        res.status(200).json({ message: 'Question updated successfully', updatedQuestion });
-    }
-    catch (error) {
-        console.error('Failed to update Question:', error);
-        res.status(500).json({ message: 'Failed to update Question', error });
-    }
-};
+        return { message: 'Question updated successfully', updatedQuestion };
+    });
+});
 
-// Delete a Question by ID
-export const deleteQuestion = async (req, res) => {
-    const { id } = req.params;
+// Delete a Question
+export const deleteQuestion = (req, res) => handleAsync(req, res, async () => {
+    return handleTransaction(async (session) => {
+        const question = await QuestionModel.findById(req.params.id).session(session);
+        if (!question) throw new Error('Question not found');
 
-    try {
-        const question = await QuestionModel.findById(id);
-        if (!question) {
-            return res.status(404).json({ message: 'Question not found' });
-        }
+        await updateTestStats({ 
+            testId: question.test, 
+            positiveMarks: question.positiveMarks, 
+            session, 
+            increment: -1 
+        });
 
-        await QuestionModel.findByIdAndDelete(id);
+        await QuestionModel.findByIdAndDelete(req.params.id).session(session);
+        return { message: 'Question deleted successfully' };
+    });
+});
 
-        res.status(200).json({ message: 'Question deleted successfully' });
-    } catch (error) {
-        console.error('Failed to delete Question:', error);
-        res.status(500).json({ message: 'Failed to delete Question', error });
-    }
-};
+// Keep other functions as they are
+export const getQuestionById = (req, res) => handleAsync(req, res, async () => {
+    const question = await QuestionModel.findById(req.params.id);
+    if (!question) throw new Error('Question not found');
+    return { message: 'Question found successfully', question };
+});
 
-// Get a Question by ID
-export const getQuestionById = async (req, res) => {
-    const { id } = req.params;
+export const getAllQuestions = (req, res) => handleAsync(req, res, async () => {
+    const questions = await QuestionModel.find();
+    return { message: 'Questions found successfully', questions };
+});
 
-    try {
-        const question = await QuestionModel.findById(id);
-
-        if (!question) {
-            return res.status(404).json({ message: 'Question not found' });
-        }
-
-        res.status(200).json({ message: 'Question found successfully', question });
-    } catch (error) {
-        console.error('Error fetching Question:', error);
-        res.status(500).json({ message: 'Failed to get Question', error });
-    }
-};
-
-// Get all Question
-export const getAllQuestions = async (req, res) => {
-    try {
-        const question = await QuestionModel.find();
-
-        res.status(200).json({ message: 'Question found successfully', question });
-    } catch (error) {
-        console.error('Error fetching Question:', error);
-        res.status(500).json({ message: 'Failed to get Question', error });
-    }
-};
-
-// Get Questions by Test ID
-export const getQuestionsByTestId = async (req, res) => {
-    const { testId } = req.params;
-
-    try {
-        const questions = await QuestionModel.find({ test: testId });
-
-        if (!questions) {
-            return res.status(404).json({ message: 'Questions not found' });
-        }
-
-        res.status(200).json({ message: 'Questions found successfully', questions });
-    } catch (error) {
-        console.error('Error fetching Questions:', error);
-        res.status(500).json({ message: 'Failed to get Questions', error });
-    }
-};
+export const getQuestionsByTestId = (req, res) => handleAsync(req, res, async () => {
+    const questions = await QuestionModel.find({ test: req.params.testId });
+    if (!questions) throw new Error('Questions not found');
+    return { message: 'Questions found successfully', questions };
+});
