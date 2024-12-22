@@ -60,7 +60,7 @@ export const getMockTestById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const MockTest = await MockTestModel.findById(id).populate('testSeries');
+        const MockTest = await MockTestModel.findById(id);
 
         if (!MockTest) {
             return res.status(404).json({ message: 'MockTest not found' });
@@ -76,7 +76,7 @@ export const getMockTestById = async (req, res) => {
 // Get all MockTests
 export const getAllMockTests = async (req, res) => {
     try {
-        const MockTests = await MockTestModel.find().populate('testSeries');
+        const MockTests = await MockTestModel.find();
         res.status(200).json(MockTests);
         res.status(200).json({ message: 'MockTests found successfully', MockTests });
     } catch (error) {
