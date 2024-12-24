@@ -1,130 +1,133 @@
 import ScoreModel from '../models/ScoreModel.js';
+import TestModel from '../models/TestModel.js';
 
-// Score Controller
+const calculateScoreStats = async (totalCorrect, totalIncorrect, totalQuestionsAttempted, testId) => {
+    // Get test details first
+    const test = await TestModel.findById(testId);
+    if (!test) throw new Error('Test not found');
 
-// Create a new Score
-export const createScore = async (req, res) => {
-    const { name, totalQuestionsAttempted, totalCorrect, totalIncorrect, percentage, percentile, accuracy, rank, testId } = req.body;
+    // Calculate marks
+    const totalMarksObtained = (totalCorrect * test.positiveMarks) - (totalIncorrect * test.negativeMarks);
+    const maxPossibleMarks = test.totalQuestions * test.positiveMarks;
 
-    const user = req.user;
-    if (!user) {
-        return res.status(401).json({ message: 'Unauthorized Access' });
-    }
+    // Calculate basic stats
+    const accuracy = totalQuestionsAttempted > 0
+        ? ((totalCorrect / totalQuestionsAttempted) * 100).toFixed(2)
+        : 0;
 
-    try {
-        const score = await ScoreModel.create({
-            name,
-            totalQuestionsAttempted,
-            totalCorrect,
-            totalIncorrect,
-            percentage,
-            percentile,
-            accuracy,
-            rank,
-            test: testId,
-            user: user._id
-        });
+    const percentage = maxPossibleMarks > 0
+        ? ((totalMarksObtained / maxPossibleMarks) * 100).toFixed(2)
+        : 0;
 
-        res.status(201).json({ message: 'Score created successfully', score });
-    } catch (error) {
-        console.error('Failed to create Score:', error);
-        res.status(500).json({ message: 'Failed to create Score', error });
-    }
-};
+    // Get all scores for this test to calculate rank and percentile
+    const allScores = await ScoreModel.find({ test: testId });
+    const totalParticipants = allScores.length + 1; // Including current score
 
+    // Calculate average score
+    const averageScore = allScores.length > 0
+        ? (allScores.reduce((sum, score) => sum + score.totalMarksObtained, 0) / allScores.length).toFixed(2)
+        : totalMarksObtained;
 
-// Update an existing Score by ID
-export const updateScore = async (req, res) => {
-    const { id } = req.params;
-    const { ...updatedData } = req.body;
+    // Calculate best score
+    const bestScore = allScores.length > 0
+        ? Math.max(parseFloat(totalMarksObtained), ...allScores.map(score => score.totalMarksObtained))
+        : totalMarksObtained;
 
-    try {
-        const score = await ScoreModel.findById(id);
-        if (!score) {
-            return res.status(404).json({ message: 'Score not found' });
+    // Calculate rank and percentile
+    const sortedScores = [...allScores.map(s => s.percentage), parseFloat(percentage)]
+        .sort((a, b) => b - a);
+
+    const rank = sortedScores.indexOf(parseFloat(percentage)) + 1;
+    const percentile = ((totalParticipants - rank + 1) / totalParticipants * 100).toFixed(2);
+
+    return {
+        accuracy: parseFloat(accuracy),
+        percentage: parseFloat(percentage),
+        percentile: parseFloat(percentile),
+        rank,
+        totalMarksObtained,
+        totalMarks: maxPossibleMarks,
+        testStats: {
+            totalParticipants,
+            averageScore: parseFloat(averageScore),
+            bestScore: parseFloat(bestScore)
         }
-
-        const updatedScore = await ScoreModel.findByIdAndUpdate(id, updatedData, { new: true });
-
-        res.status(200).json({ message: 'Score updated successfully', updatedScore });
-    } catch (error) {
-        console.error('Failed to update Score:', error);
-        res.status(500).json({ message: 'Failed to update Score', error });
-    }
+    };
 };
 
-// Delete a Score by ID
-export const deleteScore = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const score = await ScoreModel.findById(id);
-        if (!score) {
-            return res.status(404).json({ message: 'Score not found' });
+// Modified handleAsync to work with Express middleware
+const handleAsync = (handler) => {
+    return async (req, res, next) => {
+        try {
+            const result = await handler(req);
+            const { status = 200, message, data } = result;
+            res.status(status).json({ message, ...(data && { score: data }) });
+        } catch (error) {
+            next(error);
         }
-
-        await ScoreModel.findByIdAndDelete(id);
-
-        res.status(200).json({ message: 'Score deleted successfully' });
-    } catch (error) {
-        console.error('Failed to delete Score:', error);
-        res.status(500).json({ message: 'Failed to delete Score', error });
-    }
+    };
 };
 
-// Get a Score by ID
-export const getScoreById = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const score = await ScoreModel.findById(id);
-
-        if (!score) {
-            return res.status(404).json({ message: 'Score not found' });
-        }
-
-        res.status(200).json({ message: 'Score found successfully', score });
-    } catch (error) {
-        console.error('Error fetching Score:', error);
-        res.status(500).json({ message: 'Failed to get Score', error });
-    }
+const checkAuth = (req) => {
+    if (!req.user && !req.admin) throw new Error('Unauthorized Access');
 };
 
-// Get all Score
-export const getAllScores = async (req, res) => {
-    try {
-        const scores = await ScoreModel.find();
+// Export middleware functions directly
+export const createScore = handleAsync(async (req) => {
+    checkAuth(req);
+    const { totalQuestionsAttempted, totalCorrect, totalIncorrect, testId, timeTaken } = req.body;
+    const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
 
-        res.status(200).json({ message: 'Scores found successfully', scores });
-    } catch (error) {
-        console.error('Error fetching Scores:', error);
-        res.status(500).json({ message: 'Failed to get Scores', error });
-    }
-};
+    const score = await ScoreModel.create({
+        totalQuestionsAttempted, totalCorrect, totalIncorrect,
+        // timeTaken, test: testId, user: req.user !== undefined ? req.user._id : req.admin._id, ...stats
+        timeTaken, test: testId, user: "6767c6768b3a814febad260d", ...stats 
+    });
 
-// Get Scores by Test ID
-export const getScoresByTestId = async (req, res) => {
-    const { testId } = req.params;
-    const user = req.user;
-    if (!user) {
-        return res.status(401).json({ message: 'Unauthorized Access' });
-    }
+    return { status: 201, message: 'Score created successfully', data: score };
+});
 
-    try {
-        const scores = await ScoreModel.find(
-            { and: { test: testId, user: user._id } }
-        );
+// Update other handlers similarly
+export const updateScore = handleAsync(async (req) => {
+    const score = await ScoreModel.findById(req.params.id);
+    if (!score) throw new Error('Score not found');
 
-        if (!scores) {
-            return res.status(404).json({ message: 'Scores not found' });
-        }
+    const { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken } = req.body;
+    const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, score.test);
 
-        res.status(200).json({ message: 'Scores found successfully', scores });
-    } catch (error) {
-        console.error('Error fetching Scores:', error);
-        res.status(500).json({ message: 'Failed to get Scores', error });
-    }
-};
+    const updatedScore = await ScoreModel.findByIdAndUpdate(
+        req.params.id,
+        { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken, ...stats },
+        { new: true }
+    );
+
+    return { message: 'Score updated successfully', data: updatedScore };
+});
+
+export const deleteScore = handleAsync(async (req) => {
+    const score = await ScoreModel.findById(req.params.id);
+    if (!score) throw new Error('Score not found');
+    await ScoreModel.findByIdAndDelete(req.params.id);
+    return { message: 'Score deleted successfully' };
+});
+
+export const getScoreById = handleAsync(async (req) => {
+    const score = await ScoreModel.findById(req.params.id);
+    if (!score) throw new Error('Score not found');
+    return { message: 'Score found successfully', data: score };
+});
+
+export const getAllScores = handleAsync(async () => {
+    const scores = await ScoreModel.find();
+    return { message: 'Scores found successfully', data: scores };
+});
+
+export const getScoresByTestId = handleAsync(async (req) => {
+    checkAuth(req);
+    const scores = await ScoreModel.find({ test: req.params.testId, user: req.user._id });
+    if (!scores) throw new Error('Scores not found');
+    return { message: 'Scores found successfully', data: scores };
+});
 
 // // Get Scores by User ID
 // export const getScoresByUserId = async (req, res) => {

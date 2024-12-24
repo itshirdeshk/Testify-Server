@@ -1,17 +1,15 @@
 // Score Routes
 import express from 'express';
-import checkUserAuth from '../middlewares/auth-middleware.js';
-import { getAllScores, getScoreById, getScoresByTestId } from '../controllers/ScoreController.js';
+import * as ScoreController from '../controllers/ScoreController.js';
+import { verifyToken } from '../middlewares/auth-middleware.js';
 
 const router = express.Router();
 
-// GET /api/score/:id
-router.get('/:id', checkUserAuth, getScoreById);
-
-// GET /api/getAllScores
-router.get('/', checkUserAuth, getAllScores);
-
-// GET /api/getScoresByTestId/:id
-router.get('/score/:testId', checkUserAuth, getScoresByTestId);
+router.post('/create', verifyToken, ScoreController.createScore);
+router.put('/update/:id', verifyToken, ScoreController.updateScore);
+router.delete('/delete/:id', verifyToken, ScoreController.deleteScore);
+router.get('/:id', verifyToken, ScoreController.getScoreById);
+router.get('/test/:testId', verifyToken, ScoreController.getScoresByTestId);
+router.get('/', verifyToken, ScoreController.getAllScores);
 
 export default router;

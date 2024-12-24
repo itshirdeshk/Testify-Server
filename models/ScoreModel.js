@@ -1,22 +1,72 @@
 import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
-
-const ScoreSchema = new Schema(
-    {
-        totalQuestionsAttempted: { type: Number, required: true, min: 0 },
-        totalCorrect: { type: Number, required: true, min: 0 },
-        totalIncorrect: { type: Number, required: true, min: 0 },
-        percentage: { type: Number, required: true, min: 0, max: 100 },
-        percentile: { type: Number, required: true, min: 0, max: 100 },
-        accuracy: { type: Number, required: true, min: 0, max: 100 }, // correct/attempted ratio as percentage
-        rank: { type: Number, required: true, min: 1 },
-        test: { type: mongoose.Schema.Types.ObjectId, ref: 'Test', required: true },
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+const scoreSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    { timestamps: true }
-);
+    test: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Test',
+        required: true
+    },
+    totalQuestionsAttempted: {
+        type: Number,
+        required: true
+    },
+    totalCorrect: {
+        type: Number,
+        required: true
+    },
+    totalIncorrect: {
+        type: Number,
+        required: true
+    },
+    totalMarksObtained: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    totalMarks: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    accuracy: {
+        type: Number,
+        required: true
+    },
+    percentage: {
+        type: Number,
+        required: true
+    },
+    percentile: {
+        type: Number,
+        required: true
+    },
+    rank: {
+        type: Number,
+        required: true
+    },
+    timeTaken: {
+        type: Number,
+        default: 0
+    },
+    testStats: {
+        totalParticipants: {
+            type: Number,
+            required: true
+        },
+        averageScore: {
+            type: Number,
+            required: true
+        },
+        bestScore: {
+            type: Number,
+            required: true
+        }
+    }
+}, { timestamps: true });
 
-const ScoreModel = mongoose.model('Score', ScoreSchema);
-
-export default ScoreModel;
+export default mongoose.model('Score', scoreSchema);
