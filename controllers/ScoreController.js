@@ -77,11 +77,12 @@ export const createScore = handleAsync(async (req) => {
     checkAuth(req);
     const { totalQuestionsAttempted, totalCorrect, totalIncorrect, testId, timeTaken } = req.body;
     const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
+    
 
     const score = await ScoreModel.create({
         totalQuestionsAttempted, totalCorrect, totalIncorrect,
-        // timeTaken, test: testId, user: req.user !== undefined ? req.user._id : req.admin._id, ...stats
-        timeTaken, test: testId, user: "6767c6768b3a814febad260d", ...stats 
+        timeTaken, test: testId, user: req.user !== undefined ? req.user._id : req.admin._id, ...stats
+        // timeTaken, test: testId, user: "6767c6768b3a814febad260d", ...stats 
     });
 
     return { status: 201, message: 'Score created successfully', data: score };

@@ -287,7 +287,6 @@ export const userPasswordReset = async (req, res) => {
     try {
         // Find user by OTP and ensure the OTP matches
         const user = await UserModel.findOne({ otp });
-        console.log("jdj", user);
 
         if (!user) {
             return res.status(400).json({ status: 'failed', message: 'Invalid OTP' });
