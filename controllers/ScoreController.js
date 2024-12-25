@@ -15,7 +15,7 @@ const calculateScoreStats = async (totalCorrect, totalIncorrect, totalQuestionsA
         ? ((totalCorrect / totalQuestionsAttempted) * 100).toFixed(2)
         : 0;
 
-    const percentage = maxPossibleMarks > 0
+    const percentage = (maxPossibleMarks > 0 && totalMarksObtained > 0)
         ? ((totalMarksObtained / maxPossibleMarks) * 100).toFixed(2)
         : 0;
 

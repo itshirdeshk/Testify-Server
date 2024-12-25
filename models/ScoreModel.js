@@ -25,8 +25,7 @@ const scoreSchema = new mongoose.Schema({
     },
     totalMarksObtained: {
         type: Number,
-        required: true,
-        min: 0
+        required: true
     },
     totalMarks: {
         type: Number,
