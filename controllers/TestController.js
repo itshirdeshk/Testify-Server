@@ -1,6 +1,7 @@
 import TestModel from '../models/TestModel.js';
 import MockTestModel from '../models/MockTestModel.js';
 import TestSeriesModel from '../models/TestSeriesModel.js';
+import ScoreModel from '../models/ScoreModel.js';
 import mongoose from 'mongoose';
 
 // Refactor helper functions at the top
@@ -31,9 +32,9 @@ const handleAsync = async (req, res, operation) => {
         const result = await operation();
         res.status(result.status || 200).json(result);
     } catch (error) {
-        res.status(500).json({ 
-            message: error.message || 'Operation failed', 
-            error: error.message 
+        res.status(500).json({
+            message: error.message || 'Operation failed',
+            error: error.message
         });
     }
 };
@@ -41,7 +42,7 @@ const handleAsync = async (req, res, operation) => {
 const handleTransaction = async (operation) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    
+
     try {
         const result = await operation(session);
         await session.commitTransaction();
@@ -59,7 +60,7 @@ const handleTransaction = async (operation) => {
 // Create a new Test
 export const createTest = (req, res) => handleAsync(req, res, async () => {
     const { title, totalQuestions, duration, totalMarks, mockTestId, isFree } = req.body;
-    
+
     return handleTransaction(async (session) => {
         const [test] = await TestModel.create([{
             title, totalQuestions, duration, totalMarks, mockTest: mockTestId, isFree
@@ -130,7 +131,20 @@ export const getAllTest = (req, res) => handleAsync(req, res, async () => {
 
 // Get Test by MockTest ID
 export const getTestByMockTestId = (req, res) => handleAsync(req, res, async () => {
-    const test = await TestModel.find({ mockTest: req.params.mockTestId });
-    if (!test) throw new Error('Test not found');
-    return { message: 'Test found successfully', test };
+    const user = req.user;
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    const attemptedTests = (await ScoreModel.find({ user: user._id }).populate('test')).filter(score => score.test.mockTest == req.params.mockTestId);
+
+    const unattemptedTests = await TestModel.find({
+        $and: [
+            { mockTest: req.params.mockTestId },
+            { _id: { $nin: attemptedTests.map(score => score.test._id) } }
+        ]  
+    });
+    if (!attemptedTests && !unattemptedTests) throw new Error('Tests not found');
+
+    return { message: 'Tests found successfully', attemptedTests, unattemptedTests };
 });

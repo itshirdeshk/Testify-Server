@@ -10,7 +10,7 @@ const TestSchema = new Schema(
         totalMarks: { type: Number, required: true, min: 1 },
         isFree: { type: Boolean, required: true },
         positiveMarks: { type: Number, required: true, min: 0 },
-        negativeMarks: { type: Number, default: 0, min: 0 },
+        negativeMarks: { type: Number, required: true, min: 0 },
         mockTest: { type: mongoose.Schema.Types.ObjectId, ref: 'MockTest', required: true },
     },
     { timestamps: true }
