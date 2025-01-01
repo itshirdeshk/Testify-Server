@@ -23,6 +23,7 @@ import { createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQu
 import { createSubExam, deleteSubExam, getAllSubExams, getSubExamById, getSubExamsByExamId, updateSubExam } from '../controllers/SubExamController.js';
 import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId, updateScore } from '../controllers/ScoreController.js';
 import { upload } from '../middlewares/multer.js';
+import { createResource, deleteResource, getAllResources, getResourceById, getResourcesBySubExamId, updateResource } from '../controllers/ResourceController.js';
 
 
 const router = express.Router();
@@ -79,10 +80,10 @@ router.get('/getSubExamsByExamId/:examId', checkAdminAuth, getSubExamsByExamId);
 
 // testSeries
 // POST /api/testSeries
-router.post('/add/testSeries', upload.single('image'),checkAdminAuth, createTestSeries);
+router.post('/add/testSeries', upload.single('image'), checkAdminAuth, createTestSeries);
 
 // PUT /api/testSeries/:id
-router.put('/updateTestSeriesById/:id', upload.single('image'),checkAdminAuth, updateTestseries);
+router.put('/updateTestSeriesById/:id', upload.single('image'), checkAdminAuth, updateTestseries);
 
 // DELETE /api/testSeries/:id
 router.delete('/deleteTestSeriesById/:id', checkAdminAuth, deleteTestSeries);
@@ -183,5 +184,26 @@ router.get('/getScoresByTestId/:testId', checkAdminAuth, getScoresByTestId);
 
 // GET /api/getScoresByUserId/:id
 // router.get('/getScoresByUserId/:userId', checkAdminAuth, getScoresByUserId);
+
+
+
+// Resource
+// POST /api/resource
+router.post('/add/resource', upload.single('resource'), checkAdminAuth, createResource);
+
+// PUT /api/resource/:id
+router.put('/updateResourceById/:id', upload.single('resource'), checkAdminAuth, updateResource);
+
+// DELETE /api/resource/:id
+router.delete('/deleteResourceById/:id', checkAdminAuth, deleteResource);
+
+// GET /api/resource/:id
+router.get('/getResourceById/:id', checkAdminAuth, getResourceById);
+
+// GET /api/getAllResources
+router.get('/all/resource', checkAdminAuth, getAllResources);
+
+// GET /api/getResourcesBySubExamId/:id
+router.get('/getResourcesBySubExamId/:subExamId', checkAdminAuth, getResourcesBySubExamId);
 
 export default router

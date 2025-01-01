@@ -16,6 +16,8 @@ import testSeriesRoutes from './routes/TestSeriesRoutes.js';
 import testRoutes from './routes/TestRoutes.js';
 import questionRoutes from './routes/QuestionRoutes.js';
 import scoreRoutes from './routes/ScoreRoutes.js';
+import resourceRoutes from './routes/ResourceRoutes.js';
+
 dotenv.config();
 
 const app = express();
@@ -44,6 +46,7 @@ app.use('/api/mockTest', mockTestsRoutes);
 app.use('/api/test', testRoutes);
 app.use('/api/question', questionRoutes);
 app.use('/api/score', scoreRoutes);
+app.use('/api/resource', resourceRoutes);
 
 app.use('/api', generalRoutes);
 

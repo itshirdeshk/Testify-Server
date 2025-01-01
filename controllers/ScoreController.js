@@ -77,12 +77,11 @@ export const createScore = handleAsync(async (req) => {
     checkAuth(req);
     const { totalQuestionsAttempted, totalCorrect, totalIncorrect, testId, timeTaken } = req.body;
     const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
-    
+
 
     const score = await ScoreModel.create({
         totalQuestionsAttempted, totalCorrect, totalIncorrect,
         timeTaken, test: testId, user: req.user !== undefined ? req.user._id : req.admin._id, ...stats
-        // timeTaken, test: testId, user: "6767c6768b3a814febad260d", ...stats 
     });
 
     return { status: 201, message: 'Score created successfully', data: score };
@@ -90,17 +89,20 @@ export const createScore = handleAsync(async (req) => {
 
 // Update other handlers similarly
 export const updateScore = handleAsync(async (req) => {
-    const score = await ScoreModel.findById(req.params.id);
+    const {testId} = req.params;
+    const score = await ScoreModel.findOne({test: testId, user: req.user !== undefined ? req.user._id : req.admin._id});
     if (!score) throw new Error('Score not found');
+
+    const deletedScore = await ScoreModel.findOneAndDelete({test: testId, user: req.user !== undefined ? req.user._id : req.admin._id});
+    if (!deletedScore) throw new Error('Score not found');
 
     const { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken } = req.body;
     const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, score.test);
 
-    const updatedScore = await ScoreModel.findByIdAndUpdate(
-        req.params.id,
-        { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken, ...stats },
-        { new: true }
-    );
+    const updatedScore = await ScoreModel.create({
+        totalQuestionsAttempted, totalCorrect, totalIncorrect,
+        timeTaken, test: testId, user: req.user !== undefined ? req.user._id : req.admin._id, ...stats
+    });
 
     return { message: 'Score updated successfully', data: updatedScore };
 });
@@ -125,7 +127,7 @@ export const getAllScores = handleAsync(async () => {
 
 export const getScoresByTestId = handleAsync(async (req) => {
     checkAuth(req);
-    const score = await ScoreModel.find({ test: req.params.testId, user: req.user._id });
+    const score = await ScoreModel.find({ test: req.params.testId, user: req.user._id }).populate('test');
     if (!score) throw new Error('Scores not found');
     return { message: 'Score found successfully', data: score };
 });
