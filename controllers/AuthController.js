@@ -1,4 +1,6 @@
 import UserModel from '../models/UserModel.js';
+import ExamModel from '../models/ExamModel.js';
+import SubExamModel from '../models/SubExamModel.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import transporter from '../config/emailConfig.js'
@@ -75,7 +77,7 @@ export const loginUser = async (req, res) => {
 
     try {
         // Find user by email or phone (identifier can be either)
-        const user = await UserModel.findOne({ phone }).populate('exam', {name: 1}).populate('subExam', {name: 1});
+        const user = await UserModel.findOne({ phone }).populate('exam', { name: 1 }).populate('subExam', { name: 1 });
 
         if (!user) {
             return res.status(404).json({ status: "failed", message: "User not found" });
@@ -322,7 +324,7 @@ export const updateLoggedInUserProfile = async (req, res) => {
     const image = req.file?.buffer;
 
     try {
-        const user = await findUserById(userId);
+        let user = await findUserById(userId);
 
         if (!user) {
             return res.status(404).json({ status: 'failed', message: 'User not found' });
@@ -349,7 +351,19 @@ export const updateLoggedInUserProfile = async (req, res) => {
                 updateUserFields(user, updates);
                 await user.save(); // Ensure user is saved after all updates
 
-                res.status(200).json({ status: 'success', message: 'User profile updated successfully', user });
+                if (examId && subExamId) {
+                    const exam = await ExamModel.findById(examId, { name: 1 });
+                    const subExam = await SubExamModel.findById(subExamId, { name: 1 });
+
+                    const userObj = user.toObject();
+
+                    userObj.examName = exam.name;
+                    userObj.subExamName = subExam.name;
+
+                    return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user: userObj });
+                } else {
+                    return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user });
+                }
             });
 
             stream.end(image);
@@ -358,7 +372,20 @@ export const updateLoggedInUserProfile = async (req, res) => {
             updateUserFields(user, updates);
             await user.save();
 
-            res.status(200).json({ status: 'success', message: 'User profile updated successfully', user });
+            if (examId && subExamId) {
+                const exam = await ExamModel.findById(examId, { name: 1 });
+                const subExam = await SubExamModel.findById(subExamId, { name: 1 });
+
+                const userObj = user.toObject();
+
+                userObj.examName = exam.name;
+                userObj.subExamName = subExam.name;
+
+                return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user: userObj });
+            } else {
+                return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user });
+            }
+
         }
     } catch (error) {
         console.error('Error updating user profile:', error);
