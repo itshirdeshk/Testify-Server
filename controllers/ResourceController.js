@@ -21,7 +21,7 @@ export const createResource = async (req, res) => {
             const resource = await ResourceModel.create({
                 title,
                 url: result.secure_url, // Save the Cloudinary URL
-                size: result.bytes,
+                size: ((result.bytes)/1000000).toFixed(2),
                 description,
                 typeOfFile,
                 exam,

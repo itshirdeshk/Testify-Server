@@ -75,7 +75,7 @@ export const loginUser = async (req, res) => {
 
     try {
         // Find user by email or phone (identifier can be either)
-        const user = await UserModel.findOne({ phone });
+        const user = await UserModel.findOne({ phone }).populate('exam', {name: 1}).populate('subExam', {name: 1});
 
         if (!user) {
             return res.status(404).json({ status: "failed", message: "User not found" });
@@ -111,7 +111,6 @@ export const loginUser = async (req, res) => {
             status: "success",
             message: "Login successful. OTP sent to your email for verification",
             token,
-            otp,
             user
         });
     } catch (error) {
