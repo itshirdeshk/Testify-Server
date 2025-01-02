@@ -127,7 +127,7 @@ export const getAllScores = handleAsync(async () => {
 
 export const getScoresByTestId = handleAsync(async (req) => {
     checkAuth(req);
-    const score = await ScoreModel.find({ test: req.params.testId, user: req.user._id }).populate('test');
+    const score = await ScoreModel.find({ test: req.params.testId, user: req.user._id });
     if (!score) throw new Error('Scores not found');
     return { message: 'Score found successfully', data: score };
 });
