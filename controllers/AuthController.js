@@ -362,7 +362,15 @@ export const updateLoggedInUserProfile = async (req, res) => {
 
                     return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user: userObj });
                 } else {
-                    return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user });
+                    const user = await UserModel.findById(userId).populate('exam', { name: 1 }).populate('subExam', { name: 1 });
+                    const userObj = user.toObject();
+
+                    userObj.examName = user.exam.name;
+                    userObj.subExamName = user.subExam.name;
+                    userObj.exam = user.exam._id;
+                    userObj.subExam = user.subExam._id;
+
+                    return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user: userObj });
                 }
             });
 
@@ -383,7 +391,15 @@ export const updateLoggedInUserProfile = async (req, res) => {
 
                 return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user: userObj });
             } else {
-                return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user });
+                const user = await UserModel.findById(userId).populate('exam', { name: 1 }).populate('subExam', { name: 1 });
+                const userObj = user.toObject();
+
+                userObj.examName = user.exam.name;
+                userObj.subExamName = user.subExam.name;
+                userObj.exam = user.exam._id;
+                userObj.subExam = user.subExam._id;
+
+                return res.status(200).json({ status: 'success', message: 'User profile updated successfully', user: userObj });
             }
 
         }
