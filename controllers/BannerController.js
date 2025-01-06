@@ -120,7 +120,7 @@ export const getBanners = async (req, res) => {
         // Fetch banners related to the test series
         const subExamBanners = await BannerModel.find({
             subExam: subExamId,
-        });
+        }).populate('redirectId');
 
         // Fetch all subscription banners
         const subscriptionBanners = await BannerModel.find({
