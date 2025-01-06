@@ -23,6 +23,14 @@ const validatePasswords = (password, password_confirmation) => {
     }
 };
 
+const generateAccessToken = (userId) => {
+    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+};
+
+const generateRefreshToken = (userId) => {
+    return jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+};
+
 const generateAndSendOTP = async (email) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     const html = await compileEmailTemplate(otp, "Email Verification");
@@ -63,7 +71,7 @@ export const registerUser = async (req, res) => {
         await newUser.save();
 
         // Generate JWT token
-        const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '24h' }); // Adjust expiration as needed
+        const token = generateAccessToken(newUser._id);
 
         res.status(201).json({ status: "success", message: "OTP sent your email successfully", newUser, token });
     } catch (error) {
@@ -107,12 +115,14 @@ export const loginUser = async (req, res) => {
         });
 
         // Generate JWT token
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '24h' }); // Adjust expiration as needed
+        const token = generateAccessToken(user._id);
+        const refresh_token = generateRefreshToken(user._id);
 
         res.status(200).json({
             status: "success",
             message: "Login successful. OTP sent to your email for verification",
             token,
+            refresh_token,
             user
         });
     } catch (error) {
@@ -315,6 +325,39 @@ export const userPasswordReset = async (req, res) => {
     } catch (error) {
         console.error('Error resetting password:', error);
         res.status(500).json({ status: 'failed', message: 'Unable to reset password' });
+    }
+};
+
+export const refreshToken = async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+        return res.status(400).json({ status: 'failed', message: 'Refresh token is required' });
+    }
+
+    try {
+        // Verify the refresh token
+        const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+
+        // Find the user by ID
+        const user = await UserModel.findById(decoded.userId);
+
+        if (!user) {
+            return res.status(404).json({ status: 'failed', message: 'User not found' });
+        }
+
+        // Generate a new access token
+        const newAccessToken = generateAccessToken(user._id);
+        const newRefreshToken = generateRefreshToken(user._id);
+
+        res.status(200).json({
+            status: 'success',
+            accessToken: newAccessToken,
+            refreshToken: newRefreshToken,
+        });
+    } catch (error) {
+        console.error('Error refreshing token:', error);
+        return res.status(403).json({ status: 'failed', message: 'Invalid or expired refresh token' });
     }
 };
 
