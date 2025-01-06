@@ -18,6 +18,7 @@ import questionRoutes from './routes/QuestionRoutes.js';
 import scoreRoutes from './routes/ScoreRoutes.js';
 import resourceRoutes from './routes/ResourceRoutes.js';
 import bannerRoutes from './routes/BannerRoutes.js';
+import leaderboardRoutes from './routes/LeaderboardRoutes.js';
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ app.use('/api/question', questionRoutes);
 app.use('/api/score', scoreRoutes);
 app.use('/api/resource', resourceRoutes);
 app.use('/api/banner', bannerRoutes);
+app.use('/api/leaderboard', leaderboardRoutes);
 
 app.use('/api', generalRoutes);
 

@@ -1,3 +1,5 @@
+import mongoose from 'mongoose';
+import LeaderboardModel from '../models/LeaderboardModel.js';
 import ScoreModel from '../models/ScoreModel.js';
 import TestModel from '../models/TestModel.js';
 
@@ -76,36 +78,115 @@ const checkAuth = (req) => {
 export const createScore = handleAsync(async (req) => {
     checkAuth(req);
     const { totalQuestionsAttempted, totalCorrect, totalIncorrect, testId, timeTaken } = req.body;
-    const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
 
+    // Start a session for transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-    const score = await ScoreModel.create({
-        totalQuestionsAttempted, totalCorrect, totalIncorrect,
-        timeTaken, test: testId, user: req.user !== undefined ? req.user._id : req.admin._id, ...stats
-    });
+    try {
+        const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
 
-    return { status: 201, message: 'Score created successfully', data: score };
+        // Create score within the transaction
+        const score = await ScoreModel.create([{
+            totalQuestionsAttempted,
+            totalCorrect,
+            totalIncorrect,
+            timeTaken,
+            test: testId,
+            user: req.user !== undefined ? req.user._id : req.admin._id,
+            ...stats,
+        }], { session }); // Use the session
+
+        // Create leaderboard within the transaction
+        await LeaderboardModel.create([{
+            user: req.user !== undefined ? req.user._id : req.admin._id,
+            test: testId,
+            score: score[0]._id, // Access the created score (since `create` with an array returns an array)
+            rank: stats.rank,
+        }], { session }); // Use the session
+
+        // Commit the transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        return { status: 201, message: 'Score created successfully', data: score[0] };
+    } catch (error) {
+        // Abort the transaction in case of error
+        await session.abortTransaction();
+        session.endSession();
+        throw error; // Rethrow the error to be handled by the global error handler
+    }
 });
 
 // Update other handlers similarly
 export const updateScore = handleAsync(async (req) => {
-    const {testId} = req.params;
-    const score = await ScoreModel.findOne({test: testId, user: req.user !== undefined ? req.user._id : req.admin._id});
-    if (!score) throw new Error('Score not found');
+    const { testId } = req.params;
 
-    const deletedScore = await ScoreModel.findOneAndDelete({test: testId, user: req.user !== undefined ? req.user._id : req.admin._id});
-    if (!deletedScore) throw new Error('Score not found');
-
-    const { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken } = req.body;
-    const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, score.test);
-
-    const updatedScore = await ScoreModel.create({
-        totalQuestionsAttempted, totalCorrect, totalIncorrect,
-        timeTaken, test: testId, user: req.user !== undefined ? req.user._id : req.admin._id, ...stats
+    // Find the score associated with the user and test
+    const score = await ScoreModel.findOne({ 
+        test: testId, 
+        user: req.user !== undefined ? req.user._id : req.admin._id 
     });
 
-    return { message: 'Score updated successfully', data: updatedScore };
+    if (!score) throw new Error('Score not found');
+
+    // Start a session for a transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+        // Delete the previous score
+        const deletedScore = await ScoreModel.findOneAndDelete(
+            { test: testId, user: req.user !== undefined ? req.user._id : req.admin._id },
+            { session } // Include the session
+        );
+
+        if (!deletedScore) throw new Error('Failed to delete the previous score');
+
+        // Delete the corresponding leaderboard entry
+        const deletedLeaderboard = await LeaderboardModel.findOneAndDelete(
+            { test: testId, user: req.user !== undefined ? req.user._id : req.admin._id },
+            { session } // Include the session
+        );
+
+        if (!deletedLeaderboard) throw new Error('Failed to delete the previous leaderboard entry');
+
+        // Extract new score details from the request body
+        const { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken } = req.body;
+        const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
+
+        // Create a new score
+        const newScore = await ScoreModel.create([{
+            totalQuestionsAttempted,
+            totalCorrect,
+            totalIncorrect,
+            timeTaken,
+            test: testId,
+            user: req.user !== undefined ? req.user._id : req.admin._id,
+            ...stats,
+        }], { session });
+
+        // Create a new leaderboard entry
+        const newLeaderboard = await LeaderboardModel.create([{
+            user: req.user !== undefined ? req.user._id : req.admin._id,
+            test: testId,
+            score: newScore[0]._id, // Access the newly created score
+            rank: stats.rank,
+        }], { session });
+
+        // Commit the transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        return { message: 'Score updated successfully', data: newScore[0] };
+    } catch (error) {
+        // Abort the transaction in case of an error
+        await session.abortTransaction();
+        session.endSession();
+        throw error; // Rethrow the error to be handled by the global error handler
+    }
 });
+
 
 export const deleteScore = handleAsync(async (req) => {
     const score = await ScoreModel.findById(req.params.id);
