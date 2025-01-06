@@ -17,6 +17,7 @@ import testRoutes from './routes/TestRoutes.js';
 import questionRoutes from './routes/QuestionRoutes.js';
 import scoreRoutes from './routes/ScoreRoutes.js';
 import resourceRoutes from './routes/ResourceRoutes.js';
+import bannerRoutes from './routes/BannerRoutes.js';
 
 dotenv.config();
 
@@ -47,6 +48,7 @@ app.use('/api/test', testRoutes);
 app.use('/api/question', questionRoutes);
 app.use('/api/score', scoreRoutes);
 app.use('/api/resource', resourceRoutes);
+app.use('/api/banner', bannerRoutes);
 
 app.use('/api', generalRoutes);
 

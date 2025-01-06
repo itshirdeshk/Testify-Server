@@ -24,6 +24,7 @@ import { createSubExam, deleteSubExam, getAllSubExams, getSubExamById, getSubExa
 import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId, updateScore } from '../controllers/ScoreController.js';
 import { upload } from '../middlewares/multer.js';
 import { createResource, deleteResource, getAllResources, getResourceById, getResourcesBySubExamId, updateResource } from '../controllers/ResourceController.js';
+import { createBanner, deleteBanner, getAllBanners, getBannerById, getBanners, updateBanner } from '../controllers/BannerController.js';
 
 
 const router = express.Router();
@@ -205,5 +206,26 @@ router.get('/all/resource', checkAdminAuth, getAllResources);
 
 // GET /api/getResourcesBySubExamId/:id
 router.get('/getResourcesBySubExamId/:subExamId', checkAdminAuth, getResourcesBySubExamId);
+
+
+
+// Banner
+// POST /api/banner
+router.post('/add/banner', upload.single('image'), checkAdminAuth, createBanner);
+
+// PUT /api/banner/:id
+router.put('/updateBannerById/:id', upload.single('image'), checkAdminAuth, updateBanner);
+
+// DELETE /api/banner/:id
+router.delete('/deleteBannerById/:id', checkAdminAuth, deleteBanner);
+
+// GET /api/banner/:id
+router.get('/getBannerById/:id', checkAdminAuth, getBannerById);
+
+// GET /api/all/banners
+router.get('/all/banners', checkAdminAuth, getAllBanners);
+
+// GET /api/getBanner/:testSeriesId
+router.get('/getBanners/:testSeriesId', checkAdminAuth, getBanners);
 
 export default router
