@@ -13,6 +13,6 @@ router.get('/:id', checkUserAuth, getBannerById);
 router.get('/', checkUserAuth, getAllBanners);
 
 // GET /api/banners/:testSeriesId
-router.get('/banner/:testSeriesId', checkUserAuth, getBanners);
+router.get('/banner/:subExamId', checkUserAuth, getBanners);
 
 export default router;

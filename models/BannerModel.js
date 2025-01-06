@@ -20,6 +20,13 @@ const BannerSchema = new Schema({
     redirectModel: {
         type: String,
         enum: ['TestSeries', 'Subscription'], // Models to reference for navigation
+    },
+    subExam: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'SubExam',
+        required: function () {
+            return this.type === 'test-series';
+        },
     }
 }, { timestamps: true });
 

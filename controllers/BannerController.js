@@ -2,14 +2,13 @@ import BannerModel from '../models/BannerModel.js';
 import cloudinary from '../cloudinaryConfig/cloudinaryConfig.js';
 
 export const createBanner = async (req, res) => {
-    const { type, redirectId, redirectModel } = req.body;
+    const { type, redirectId, redirectModel, subExamId } = req.body;
     const imageFile = req.file.buffer; // Use buffer for the uploaded image
 
     try {
         // Upload image to Cloudinary
         const stream = cloudinary.v2.uploader.upload_stream({
             folder: 'banner_images',
-            public_id: `banner_${Date.now()}`,
             overwrite: true,
         }, async (error, result) => {
             if (error) {
@@ -17,13 +16,21 @@ export const createBanner = async (req, res) => {
                 return res.status(500).json({ status: 'failed', message: 'Image upload failed' });
             }
 
-            // Save banner details in the database
-            const banner = await BannerModel.create({
+            // Prepare the banner object
+            const bannerData = {
                 type,
                 url: result.secure_url, // Save the Cloudinary URL
                 redirectId,
                 redirectModel,
-            });
+            };
+
+            // Only add `subExamId` to the bannerData if it's available
+            if (subExamId) {
+                bannerData.subExam = subExamId;
+            }
+
+            // Save banner details in the database
+            const banner = await BannerModel.create(bannerData);
 
             res.status(201).json({ message: 'Banner created successfully', banner });
         });
@@ -107,13 +114,12 @@ export const getAllBanners = async (req, res) => {
 };
 
 export const getBanners = async (req, res) => {
-    const { testSeriesId } = req.params; // ID of the test series to fetch related banners
+    const { subExamId } = req.params;
 
     try {
         // Fetch banners related to the test series
-        const testSeriesBanners = await BannerModel.find({
-            type: 'test-series',
-            redirectId: testSeriesId,
+        const subExamBanners = await BannerModel.find({
+            subExam: subExamId,
         });
 
         // Fetch all subscription banners
@@ -121,7 +127,7 @@ export const getBanners = async (req, res) => {
             type: 'subscription',
         });
 
-        const banners = [...testSeriesBanners, ...subscriptionBanners];
+        const banners = [...subExamBanners, ...subscriptionBanners];
 
         res.status(200).json({
             message: 'Banners fetched successfully',
