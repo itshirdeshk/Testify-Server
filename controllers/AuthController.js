@@ -27,9 +27,9 @@ const generateAccessToken = (userId) => {
     return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
-const generateRefreshToken = (userId) => {
-    return jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
-};
+// const generateRefreshToken = (userId) => {
+//     return jwt.sign({ userId }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '7d' });
+// };
 
 const generateAndSendOTP = async (email) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
@@ -116,13 +116,13 @@ export const loginUser = async (req, res) => {
 
         // Generate JWT token
         const token = generateAccessToken(user._id);
-        const refresh_token = generateRefreshToken(user._id);
+        // const refresh_token = generateRefreshToken(user._id);
 
         res.status(200).json({
             status: "success",
             message: "Login successful. OTP sent to your email for verification",
             token,
-            refresh_token,
+            // refresh_token,
             user
         });
     } catch (error) {
