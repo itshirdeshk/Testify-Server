@@ -276,7 +276,7 @@ export const verifyOTP = async (req, res) => {
         });
 
         user.isUserVerified = true;
-        user.otp = undefined;
+        user.otp = otp;
         await user.save();
 
         res.status(200).json({
