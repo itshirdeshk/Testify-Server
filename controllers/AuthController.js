@@ -46,6 +46,28 @@ const validatePhone = (phone) => {
     }
 };
 
+const generateAndSendOTP = async (email) => {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const html = await compileEmailTemplate(otp, "Email Verification");
+    transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: email,
+        subject: `${ otp } is your OTP for email verification on EdTech`,
+        html: html
+    });
+    return otp;
+};
+
+const compileEmailTemplate = async (otp, purpose) => {
+    const sourcePath = path.join(process.cwd(), 'EmailTemplate', 'Emailtemplate.html');
+    if (!fs.existsSync(sourcePath)) {
+        throw new Error(`HTML email template file not found at: ${sourcePath}`);
+    }
+    const source = fs.readFileSync(sourcePath, 'utf8');
+    const template = handlebars.compile(source);
+    return template({ otp, purpose });
+};
+
 const hashPassword = async (password) => {
     const salt = await bcrypt.genSalt(10);
     return await bcrypt.hash(password, salt);
@@ -61,9 +83,9 @@ export const registerUser = async (req, res) => {
     try {
         // Validate required fields
         if (!name || !email || !phone || !password || !password_confirmation) {
-            return res.status(400).json({ 
-                status: "failed", 
-                message: "All fields are required (name, email, phone, password, password confirmation)" 
+            return res.status(400).json({
+                status: "failed",
+                message: "All fields are required (name, email, phone, password, password confirmation)"
             });
         }
 
@@ -78,7 +100,7 @@ export const registerUser = async (req, res) => {
         // Validate email and phone
         validateEmail(email);
         validatePhone(phone);
-        
+
         // Check if user exists and validate passwords
         await checkUserExists(email, phone);
         validatePasswords(password, password_confirmation);
@@ -86,29 +108,29 @@ export const registerUser = async (req, res) => {
         const otp = await generateAndSendOTP(email);
         const hashedPassword = await hashPassword(password);
 
-        const newUser = new UserModel({ 
-            name, 
-            email, 
-            phone, 
-            password: hashedPassword, 
-            otp, 
-            otpCreatedAt: new Date() 
+        const newUser = new UserModel({
+            name,
+            email,
+            phone,
+            password: hashedPassword,
+            otp,
+            otpCreatedAt: new Date()
         });
         await newUser.save();
 
         const token = generateAccessToken(newUser._id);
 
-        res.status(201).json({ 
-            status: "success", 
-            message: "Registration successful. OTP sent to your email for verification", 
-            newUser, 
-            token 
+        res.status(201).json({
+            status: "success",
+            message: "Registration successful. OTP sent to your email for verification",
+            newUser,
+            token
         });
     } catch (error) {
         console.error("Error registering user:", error);
-        res.status(400).json({ 
-            status: "failed", 
-            message: error.message || "Unable to register user" 
+        res.status(400).json({
+            status: "failed",
+            message: error.message || "Unable to register user"
         });
     }
 };
