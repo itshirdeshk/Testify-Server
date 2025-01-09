@@ -298,10 +298,10 @@ export const changePassword = async (req, res) => {
         const userId = req.user._id;
 
         // Validate required fields
-        if (!oldPassword || !newPassword || !newPassword_confirmation) {
+        if (!oldPassword || !newPassword) {
             return res.status(400).json({
                 status: 'failed',
-                message: 'All fields (old password, new password, and confirmation) are required'
+                message: 'All fields (old password and new password) are required'
             });
         }
 
@@ -331,12 +331,12 @@ export const changePassword = async (req, res) => {
             });
         }
 
-        if (newPassword !== newPassword_confirmation) {
-            return res.status(400).json({
-                status: 'failed',
-                message: 'New password and confirmation do not match'
-            });
-        }
+        // if (newPassword !== newPassword_confirmation) {
+        //     return res.status(400).json({
+        //         status: 'failed',
+        //         message: 'New password and confirmation do not match'
+        //     });
+        // }
 
         if (oldPassword === newPassword) {
             return res.status(400).json({
@@ -493,12 +493,12 @@ export const userPasswordReset = async (req, res) => {
         await user.save();
 
         // Send confirmation email
-        // await transporter.sendMail({
-        //     from: process.env.EMAIL_FROM,
-        //     to: email,
-        //     subject: 'EdTech - Password Reset Successful',
-        //     html: '<h1>Your password has been reset successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
-        // });
+        await transporter.sendMail({
+            from: process.env.EMAIL_FROM,
+            to: user.email,
+            subject: 'EdTech - Password Reset Successful',
+            html: '<h1>Your password has been reset successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
+        });
 
         res.status(200).json({
             status: 'success',
