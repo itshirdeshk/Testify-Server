@@ -429,18 +429,18 @@ export const sendUserPasswordResetEmail = async (req, res) => {
 };
 
 export const userPasswordReset = async (req, res) => {
-    const { email, otp, password, password_confirmation } = req.body;
+    const { otp, password, password_confirmation } = req.body;
 
     try {
         // Validate required fields
-        if (!email || !otp || !password || !password_confirmation) {
+        if (!otp || !password || !password_confirmation) {
             return res.status(400).json({
                 status: 'failed',
-                message: 'All fields (email, OTP, password, and confirmation) are required'
+                message: 'All fields (OTP, password, and confirmation) are required'
             });
         }
 
-        validateEmail(email);
+        // validateEmail(email);
 
         // Validate OTP format
         if (!/^\d{6}$/.test(otp)) {
@@ -489,7 +489,7 @@ export const userPasswordReset = async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
         user.password = hashedPassword;
-        user.otp = undefined;
+        user.otp = otp;
         await user.save();
 
         // Send confirmation email
