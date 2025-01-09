@@ -576,7 +576,7 @@ export const updateLoggedInUserProfile = async (req, res) => {
             }
         }
 
-        let user = await findUserById(userId);
+        let user = await UserModel.findById(userId);
         if (!user) {
             return res.status(404).json({
                 status: 'failed',
