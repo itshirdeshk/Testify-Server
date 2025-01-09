@@ -450,7 +450,7 @@ export const userPasswordReset = async (req, res) => {
             });
         }
 
-        const user = await UserModel.findOne({ email, otp: parseInt(otp) });
+        const user = await UserModel.findOne({ otp: parseInt(otp) });
         if (!user) {
             return res.status(400).json({
                 status: 'failed',
