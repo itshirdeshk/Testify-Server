@@ -493,12 +493,12 @@ export const userPasswordReset = async (req, res) => {
         await user.save();
 
         // Send confirmation email
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: email,
-            subject: 'EdTech - Password Reset Successful',
-            html: '<h1>Your password has been reset successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
-        });
+        // await transporter.sendMail({
+        //     from: process.env.EMAIL_FROM,
+        //     to: email,
+        //     subject: 'EdTech - Password Reset Successful',
+        //     html: '<h1>Your password has been reset successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
+        // });
 
         res.status(200).json({
             status: 'success',
