@@ -6,44 +6,103 @@
     <title>OTP Verification</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f9fc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        h1 {
-            color: #007bff;
+        .header {
+            background: linear-gradient(135deg, #007bff, #00a8ff);
+            padding: 30px;
+            text-align: center;
+            color: #fff;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .content {
+            padding: 30px;
             text-align: center;
         }
-        p {
-            text-align: center;
+        .content p {
             font-size: 18px;
+            color: #333;
+            margin: 0 0 20px;
         }
         .otp {
-            margin-top: 30px;
-            padding: 20px;
+            display: inline-block;
+            margin: 20px 0;
+            padding: 15px 30px;
             background-color: #007bff;
             color: #fff;
-            font-size: 24px;
-            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
             border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f1f1f1;
+            font-size: 14px;
+            color: #666;
+        }
+        .footer a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+        .illustration {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .illustration img {
+            max-width: 150px;
+            height: auto;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>OTP Verification</h1>
-        <p>Your OTP for {{purpose}} is:</p>
-        <div class="otp">
-            <strong>{{otp}}</strong>
+        <!-- Header Section -->
+        <div class="header">
+            <h1>OTP Verification</h1>
         </div>
+
+        <!-- Content Section -->
+        <!-- <div class="content">
+            <div class="illustration"> -->
+                <!-- Add an illustration or icon here -->
+                <!-- <img src="https://cdn-icons-png.flaticon.com/512/4472/4472583.png" alt="OTP Illustration">
+            </div> -->
+            <p>Your OTP for <strong>{{purpose}}</strong> is:</p>
+            <div class="otp">
+                <strong>{{otp}}</strong>
+            </div>
+            <p>Please use this OTP to complete your verification process. This OTP is valid for 10 minutes.</p>
+        </div>
+
+        <!-- Footer Section -->
+        <!-- <div class="footer">
+            <p>If you didn't request this OTP, please ignore this email or contact support at <a href="mailto:support@example.com">support@example.com</a>.</p>
+            <p>&copy; 2023 Your Company. All rights reserved.</p>
+        </div> -->
     </div>
 </body>
 </html>

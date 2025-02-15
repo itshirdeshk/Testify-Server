@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT = 8080
+      - MONGO_URI=mongodb+srv://itshirdeshk:jiophone@cluster0.w2fke.mongodb.net/testify
+      - SALT_ROUNDS=10
+      - JWT_SECRET=Lucky
+      - REFRESH_TOKEN_SECRET=Lucky
+      - EMAIL_HOST= smtp.gmail.com
+      - EMAIL_PORT= 587
+      - EMAIL_USER= luckyvirani555@gmail.com
+      - EMAIL_PASS= duiv igns itav cndu
+      - CLOUDINARY_CLOUD_NAME=dywotk05p
+      - CLOUDINARY_API_KEY=946922579483114
+      - CLOUDINARY_API_SECRET=2OtzvAIvc-ZHWmmbqQbXfJfbCs0
+    # depends_on:
+    #   - mongo
+
+  # mongo:
+  #   image: mongo:latest
+  #   restart: always
+  #   ports:
+  #     - "27017:27017"
+  #   volumes:
+  #     - mongo-data:/data/db
+
+# volumes:
+#   mongo-data:

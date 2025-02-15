@@ -129,84 +129,99 @@ export const updateScore = handleAsync(async (req) => {
     const score = await ScoreModel.findOne({ test: testId, user: userId });
 
     if (!score) throw new Error('Score not found');
-
-    // Start the first session for the deletion part
-    const deleteSession = await mongoose.startSession();
+    
+    // Start a single session for the entire operation
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
     try {
-        // Start the transaction for deletion
-        deleteSession.startTransaction();
-
-        // Step 1: Delete the previous score
+        // Step 1: Delete the previous score and leaderboard entry
         const deletedScore = await ScoreModel.findOneAndDelete(
             { test: testId, user: userId },
-            { session: deleteSession }
+            { session }
         );
 
-        if (!deletedScore) throw new Error('Failed to delete the previous score');
+        if (!deletedScore) throw new Error('Score not found');
 
-        // Step 2: Delete the corresponding leaderboard entry
-        const deletedLeaderboard = await LeaderboardModel.findOneAndDelete(
+        await LeaderboardModel.findOneAndDelete(
             { test: testId, user: userId },
-            { session: deleteSession }
+            { session }
         );
 
-        if (!deletedLeaderboard) throw new Error('Failed to delete the previous leaderboard entry');
-
-        // Commit the deletion transaction
-        await deleteSession.commitTransaction();
-    } catch (error) {
-        // Abort the deletion transaction in case of an error
-        await deleteSession.abortTransaction();
-        throw error; // Rethrow the error to be handled by the global error handler
-    } finally {
-        // End the deletion session
-        deleteSession.endSession();
-    }
-
-    // Start the second session for the creation part
-    const createSession = await mongoose.startSession();
-
-    try {
-        // Start the transaction for creation
-        createSession.startTransaction();
-
-        // Step 3: Extract new score details from the request body
-        const { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken } = req.body;
+        // Step 2: Calculate new stats
         const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
 
-        // Step 4: Create the new score
+        // Step 3: Create the new score
         const newScore = await ScoreModel.create(
-            [
-                {
-                    totalQuestionsAttempted,
-                    totalCorrect,
-                    totalIncorrect,
-                    timeTaken,
-                    test: testId,
-                    user: userId,
-                    ...stats,
-                },
-            ],
-            { session: createSession }
+            {
+                totalQuestionsAttempted,
+                totalCorrect,
+                totalIncorrect,
+                timeTaken,
+                test: testId,
+                user: userId,
+                ...stats,
+            },
+            { session }
         );
 
-        // Step 5: Create the new leaderboard entry
+        // Step 4: Create the new leaderboard entry
         await LeaderboardModel.create(
-            [
-                {
-                    user: userId,
-                    test: testId,
-                    score: newScore[0]._id, // Access the newly created score
-                    rank: stats.rank,
-                },
-            ],
-            { session: createSession }
+            {
+                user: userId,
+                test: testId,
+                score: newScore._id,
+                rank: stats.rank,
+            },
+            { session }
         );
 
-        // Commit the creation transaction
-        await createSession.commitTransaction();
-        return { message: 'Score updated successfully', data: newScore[0] };
+        // Step 5: Fetch all scores for the test
+        const allScores = await ScoreModel.find({ test: testId }).session(session);
+
+        // Step 6: Sort scores by totalMarksObtained in ascending order
+        const sortedScores = allScores.sort((a, b) => a.totalMarksObtained - b.totalMarksObtained);
+
+        // Step 7: Recalculate percentile for all participants
+        const totalParticipants = sortedScores.length;
+        const bulkUpdateOps = sortedScores.map((score, index) => {
+            // Calculate percentile
+            const percentile = ((index + 1) / totalParticipants) * 100;
+
+            return {
+                updateOne: {
+                    filter: { _id: score._id },
+                    update: { $set: { percentile: parseFloat(percentile.toFixed(2)) } },
+                },
+            };
+        });
+
+        // Step 8: Update percentiles in the ScoreModel
+        await ScoreModel.bulkWrite(bulkUpdateOps, { session });
+
+        // Step 9: Recalculate ranks for all players
+        const rankSortedScores = allScores
+            .map(score => ({
+                scoreId: score._id,
+                percentage: score.percentage,
+            }))
+            .sort((a, b) => b.percentage - a.percentage);
+
+        const rankBulkOps = rankSortedScores.map((score, index) => ({
+            updateOne: {
+                filter: { score: score.scoreId },
+                update: { $set: { rank: index + 1 } },
+            },
+        }));
+
+        // Step 10: Update ranks in the LeaderboardModel
+        await LeaderboardModel.bulkWrite(rankBulkOps, { session });
+
+        // Commit the transaction
+        await session.commitTransaction();
+        session.endSession();
+
+        return { message: 'Score updated successfully', data: newScore };
     } catch (error) {
         // Abort the creation transaction in case of an error
         await createSession.abortTransaction();
