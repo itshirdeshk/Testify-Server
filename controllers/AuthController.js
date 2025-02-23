@@ -162,7 +162,7 @@ export const loginUser = async (req, res) => {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            return res.status(401).json({
+            return res.status(403).json({
                 status: "failed",
                 message: "Incorrect password"
             });
@@ -317,7 +317,7 @@ export const changePassword = async (req, res) => {
         // Validate old password
         const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
         if (!isPasswordValid) {
-            return res.status(401).json({
+            return res.status(403).json({
                 status: 'failed',
                 message: 'Current password is incorrect'
             });
