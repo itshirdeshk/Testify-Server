@@ -52,7 +52,7 @@ const generateAndSendOTP = async (email) => {
     transporter.sendMail({
         from: process.env.EMAIL_FROM,
         to: email,
-        subject: `${ otp } is your OTP for email verification on EdTech`,
+        subject: `${otp} is your OTP for email verification on EdTech`,
         html: html
     });
     return otp;
@@ -648,6 +648,35 @@ export const updateLoggedInUserProfile = async (req, res) => {
         });
     }
 };
+
+export const sendOtpAgain = async (req, res) => {
+    const { email } = req.body;
+
+    const user = await UserModel.findOne({ email });
+    if (!user) {
+        return res.status(404).json({
+            status: 'failed',
+            message: 'User not found'
+        });
+    }
+
+    const otp = await generateAndSendOTP(email);
+    user.otp = otp;
+    user.otpCreatedAt = new Date();
+    await user.save();
+
+    await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: user.email,
+        subject: "EdTech - Verification OTP",
+        html: `<h1>Your verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
+    });
+
+    res.status(200).json({
+        status: 'success',
+        message: 'OTP sent successfully'
+    });
+}
 
 const updateUserAndReturnResponse = async (user, updates, res) => {
     updateUserFields(user, updates);
