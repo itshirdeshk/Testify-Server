@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerUser, verifyOTP, loginUser, changePassword, ProfileUser, sendOtpAgain, sednsendUserPasswordResetEmail, userPasswordReset, updateLoggedInUserProfile } from '../controllers/AuthController.js';
+import { registerUser, verifyOTP, loginUser, changePassword, ProfileUser, sendOtpAgain, sendUserPasswordResetEmail, userPasswordReset, updateLoggedInUserProfile } from '../controllers/AuthController.js';
 import checkUserAuth from '../middlewares/auth-middleware.js';
 import { upload } from '../middlewares/multer.js';
 
