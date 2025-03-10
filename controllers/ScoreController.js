@@ -23,7 +23,6 @@ const calculateScoreStats = async (totalCorrect, totalIncorrect, totalQuestionsA
 
     // Get all scores for this test to calculate rank and percentile
     const allScores = await ScoreModel.find({ test: testId });
-    console.log(allScores);
 
     const totalParticipants = allScores.length + 1; // Including current score
 
@@ -125,110 +124,67 @@ export const updateScore = handleAsync(async (req) => {
     const { testId } = req.params;
 
     // Find the score associated with the user and test
-    const userId = req.user !== undefined ? req.user._id : req.admin._id;
-    const score = await ScoreModel.findOne({ test: testId, user: userId });
+    const score = await ScoreModel.findOne({
+        test: testId,
+        user: req.user !== undefined ? req.user._id : req.admin._id
+    });
 
     if (!score) throw new Error('Score not found');
-    
-    // Start a single session for the entire operation
+
+    // Start a session for a transaction
     const session = await mongoose.startSession();
     session.startTransaction();
 
     try {
-        // Step 1: Delete the previous score and leaderboard entry
+        // Delete the previous score
         const deletedScore = await ScoreModel.findOneAndDelete(
-            { test: testId, user: userId },
-            { session }
+            { test: testId, user: req.user !== undefined ? req.user._id : req.admin._id },
+            { session } // Include the session
         );
 
-        if (!deletedScore) throw new Error('Score not found');
+        if (!deletedScore) throw new Error('Failed to delete the previous score');
 
-        await LeaderboardModel.findOneAndDelete(
-            { test: testId, user: userId },
-            { session }
+        // Delete the corresponding leaderboard entry
+        const deletedLeaderboard = await LeaderboardModel.findOneAndDelete(
+            { test: testId, user: req.user !== undefined ? req.user._id : req.admin._id },
+            { session } // Include the session
         );
 
-        // Step 2: Calculate new stats
+        if (!deletedLeaderboard) throw new Error('Failed to delete the previous leaderboard entry');
+
+        // Extract new score details from the request body
+        const { totalQuestionsAttempted, totalCorrect, totalIncorrect, timeTaken } = req.body;
         const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
 
-        // Step 3: Create the new score
-        const newScore = await ScoreModel.create(
-            {
-                totalQuestionsAttempted,
-                totalCorrect,
-                totalIncorrect,
-                timeTaken,
-                test: testId,
-                user: userId,
-                ...stats,
-            },
-            { session }
-        );
+        // Create a new score
+        const newScore = await ScoreModel.create([{
+            totalQuestionsAttempted,
+            totalCorrect,
+            totalIncorrect,
+            timeTaken,
+            test: testId,
+            user: req.user !== undefined ? req.user._id : req.admin._id,
+            ...stats,
+        }], { session });
 
-        // Step 4: Create the new leaderboard entry
-        await LeaderboardModel.create(
-            {
-                user: userId,
-                test: testId,
-                score: newScore._id,
-                rank: stats.rank,
-            },
-            { session }
-        );
-
-        // Step 5: Fetch all scores for the test
-        const allScores = await ScoreModel.find({ test: testId }).session(session);
-
-        // Step 6: Sort scores by totalMarksObtained in ascending order
-        const sortedScores = allScores.sort((a, b) => a.totalMarksObtained - b.totalMarksObtained);
-
-        // Step 7: Recalculate percentile for all participants
-        const totalParticipants = sortedScores.length;
-        const bulkUpdateOps = sortedScores.map((score, index) => {
-            // Calculate percentile
-            const percentile = ((index + 1) / totalParticipants) * 100;
-
-            return {
-                updateOne: {
-                    filter: { _id: score._id },
-                    update: { $set: { percentile: parseFloat(percentile.toFixed(2)) } },
-                },
-            };
-        });
-
-        // Step 8: Update percentiles in the ScoreModel
-        await ScoreModel.bulkWrite(bulkUpdateOps, { session });
-
-        // Step 9: Recalculate ranks for all players
-        const rankSortedScores = allScores
-            .map(score => ({
-                scoreId: score._id,
-                percentage: score.percentage,
-            }))
-            .sort((a, b) => b.percentage - a.percentage);
-
-        const rankBulkOps = rankSortedScores.map((score, index) => ({
-            updateOne: {
-                filter: { score: score.scoreId },
-                update: { $set: { rank: index + 1 } },
-            },
-        }));
-
-        // Step 10: Update ranks in the LeaderboardModel
-        await LeaderboardModel.bulkWrite(rankBulkOps, { session });
+        // Create a new leaderboard entry
+        const newLeaderboard = await LeaderboardModel.create([{
+            user: req.user !== undefined ? req.user._id : req.admin._id,
+            test: testId,
+            score: newScore[0]._id, // Access the newly created score
+            rank: stats.rank,
+        }], { session });
 
         // Commit the transaction
         await session.commitTransaction();
         session.endSession();
 
-        return { message: 'Score updated successfully', data: newScore };
+        return { message: 'Score updated successfully', data: newScore[0] };
     } catch (error) {
-        // Abort the creation transaction in case of an error
-        await createSession.abortTransaction();
+        // Abort the transaction in case of an error
+        await session.abortTransaction();
+        session.endSession();
         throw error; // Rethrow the error to be handled by the global error handler
-    } finally {
-        // End the creation session
-        createSession.endSession();
     }
 });
 
