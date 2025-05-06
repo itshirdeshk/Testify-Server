@@ -115,8 +115,9 @@ export const getTestSeriesById = async (req, res) => {
 
 // Get all TestSeries
 export const getAllTestSeries = async (req, res) => {
+    const { skip, limit } = req.query;
     try {
-        let query = TestSeriesModel.find();
+        let query = TestSeriesModel.find().skip(skip).limit(limit);
         if (req.admin) {
             query = query.populate('subExam');
         }

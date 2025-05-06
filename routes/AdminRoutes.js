@@ -1,6 +1,6 @@
 import express from 'express';
 import { registerAdmin, loginAdmin, getAdminProfile, updateAdminProfile } from '../controllers/AdminAuthController.js';
-import { getUserbyId, getAllUsers, updateUser, deleteUserById } from '../controllers/UserController.js'
+import { getUserbyId, getAllUsers, updateUser, deleteUserById, searchUsers } from '../controllers/UserController.js'
 import {
     createExam,
     deleteExam,
@@ -29,6 +29,8 @@ import { createFAQ, updateFAQ, getFAQById, getAllFAQs, deleteFAQ } from '../cont
 import { createTerms, updateTerms, getTermsById, getAllTerms, deleteTerms } from '../controllers/TermsController.js';
 import { createPrivacyPolicy, updatePrivacyPolicy, getPrivacyPolicyById, getAllPrivacyPolicies, deletePrivacyPolicy } from '../controllers/PrivacyPolicyController.js';
 import { createAboutUs, updateAboutUs, getAboutUsById, getAllAboutUs, deleteAboutUs } from '../controllers/AboutUsController.js';
+import { getLeaderboardByTestId } from '../controllers/LeaderboardController.js';
+import { createDashboard, getDashboard, updateDashboard } from '../controllers/DashboardController.js';
 
 
 const router = express.Router();
@@ -37,6 +39,7 @@ router.post('/register', registerAdmin);
 router.post('/login', loginAdmin);
 router.get('/getUserById/:id', checkAdminAuth, getUserbyId);
 router.get('/all/user', checkAdminAuth, getAllUsers);
+router.get('/search/user', checkAdminAuth, searchUsers);
 router.put('/update/:id', checkAdminAuth, updateUser);
 // router.post('/updateProfilePicture/:id', upload.single('profilePicture'), checkAdminAuth, updateUserProfilePicture);
 router.delete('/delete/:id', checkAdminAuth, deleteUserById);
@@ -259,5 +262,13 @@ router.put('/updateAboutUsById/:id', checkAdminAuth, updateAboutUs);
 router.get('/getAboutUsById/:id', checkAdminAuth, getAboutUsById);
 router.get('/all/about-us', checkAdminAuth, getAllAboutUs);
 router.delete('/deleteAboutUsById/:id', checkAdminAuth, deleteAboutUs);
+
+// Leaderboard
+router.get('/getLeaderboardByTestId/:testId', checkAdminAuth, getLeaderboardByTestId);
+
+// Dashboard
+router.post('/add/dashboard', checkAdminAuth, createDashboard);
+router.put('/updateDashboard', checkAdminAuth, updateDashboard);
+router.get('/getDashboard', checkAdminAuth, getDashboard);
 
 export default router

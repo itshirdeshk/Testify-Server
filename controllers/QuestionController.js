@@ -123,7 +123,8 @@ export const getQuestionById = (req, res) => handleAsync(req, res, async () => {
 });
 
 export const getAllQuestions = (req, res) => handleAsync(req, res, async () => {
-    let query = QuestionModel.find();
+    const {skip, limit} = req.query;
+    let query = QuestionModel.find().skip(skip).limit(limit);
     if (req.admin) {
         query = query.populate('test');
     }

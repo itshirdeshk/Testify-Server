@@ -36,8 +36,9 @@ export const getUserbyId = async (req, res) => {
 
 // Get all users
 export const getAllUsers = async (req, res) => {
+  const { skip, limit } = req.query;
   try {
-    let query = UserModel.find();
+    let query = UserModel.find().skip(skip).limit(limit);
     if (req.admin) {
       query = query.populate('exam').populate('subExam');
     }
@@ -57,6 +58,30 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
+// Search for users
+export const searchUsers = async (req, res) => {
+  const { name, skip, limit } = req.query;
+
+  try {
+    let query = UserModel.find({ name: { $regex: name, $options: 'i' } }).skip(skip).limit(limit);
+    if (req.admin) {
+      query = query.populate('exam').populate('subExam');
+    }
+    let users = await query;
+    users = users.map((user) => {
+      const { password, ...otherDetails } = user._doc;
+      return otherDetails;
+    });
+
+    res.status(200).json({
+      status: 200,
+      message: "user found",
+      data: users
+    });
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
 
 // udpate a user
 export const updateUser = async (req, res) => {

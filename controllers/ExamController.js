@@ -97,8 +97,9 @@ export const getExamById = async (req, res) => {
 };
 
 export const getAllExams = async (req, res) => {
+    const {skip, limit} = req.query;
     try {
-        const exams = await ExamModel.find();
+        const exams = await ExamModel.find().skip(skip).limit(limit);
         res.status(200).json({ message: 'Exams found successfully', exams });
     } catch (error) {
         res.status(500).json({ message: 'Failed to get exams', error: error.message });

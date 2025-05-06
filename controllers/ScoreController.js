@@ -206,7 +206,8 @@ export const getScoreById = handleAsync(async (req) => {
 });
 
 export const getAllScores = handleAsync(async () => {
-    let query = ScoreModel.find();
+    const {skip,limit} = req.query;
+    let query = ScoreModel.find().skip(skip).limit(limit);
     if (req.admin) {
         query = query.populate('test').populate('user');
     }

@@ -21,7 +21,7 @@ export const createResource = async (req, res) => {
             const resource = await ResourceModel.create({
                 title,
                 url: result.secure_url, // Save the Cloudinary URL
-                size: ((result.bytes)/1000000).toFixed(2),
+                size: ((result.bytes) / 1000000).toFixed(2),
                 description,
                 typeOfFile,
                 exam,
@@ -59,7 +59,7 @@ export const updateResource = async (req, res) => {
             const stream = cloudinary.v2.uploader.upload_stream({
                 resource_type: 'raw',
                 folder: 'resources/',
-                overwrite: true 
+                overwrite: true
             }, async (error, result) => {
                 if (error) {
                     console.error('Cloudinary upload error:', error);
@@ -107,8 +107,9 @@ export const getResourceById = async (req, res) => {
 };
 
 export const getAllResources = async (req, res) => {
+    const { skip, limit } = req.query;
     try {
-        let query = ResourceModel.find();
+        let query = ResourceModel.find().skip(skip).limit(limit);
         if (req.admin) {
             query = query.populate('exam').populate('subExam');
         }

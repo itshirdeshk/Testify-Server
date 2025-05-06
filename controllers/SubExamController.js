@@ -123,8 +123,9 @@ export const getSubExamById = async (req, res) => {
 
 // Get all subcategories
 export const getAllSubExams = async (req, res) => {
+    const {skip, limit} = req.query;
     try {
-        let query = SubExamModel.find();
+        let query = SubExamModel.find().skip(skip).limit(limit);
         if (req.admin) {
             query = query.populate('exam');
         }

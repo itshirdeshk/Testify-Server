@@ -79,8 +79,9 @@ export const getMockTestById = async (req, res) => {
 
 // Get all MockTests
 export const getAllMockTests = async (req, res) => {
+    const { skip, limit } = req.query;
     try {
-        let query = MockTestModel.find();
+        let query = MockTestModel.find().skip(skip).limit(limit);
         if (req.admin) {
             query = query.populate('testSeries');
         }
