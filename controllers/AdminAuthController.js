@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 export const registerAdmin = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, phone, firstName, lastName } = req.body;
 
     try {
         // Check if email or phone already exists
@@ -17,7 +17,7 @@ export const registerAdmin = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Save user data temporarily without JWT token or isUserVerified status
-        const newAdmin = new AdminModel({ email, password: hashedPassword });
+        const newAdmin = new AdminModel({ email, password: hashedPassword, phone, firstName, lastName });
         await newAdmin.save();
 
         res.status(201).json({ status: "success", message: "Admin Registered Successfully", newAdmin }); // Return OTP for testing/demo
@@ -68,12 +68,20 @@ export const getAdminProfile = async (req, res) => {
 };
 
 export const updateAdminProfile = async (req, res) => {
-    const { name, email, password } = req.body;
+    const { firstName, lastName, phone, email, password } = req.body;
     const admin = req.admin;
 
     try {
-        if (name) {
-            admin.name = name;
+        if (firstName) {
+            admin.firstName = firstName;
+        }
+
+        if (lastName) {
+            admin.lastName = lastName;
+        }
+
+        if (phone) {
+            admin.phone = phone;
         }
 
         if (email) {

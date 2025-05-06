@@ -92,7 +92,11 @@ export const updateResource = async (req, res) => {
 export const getResourceById = async (req, res) => {
     const { id } = req.params;
     try {
-        const resource = await ResourceModel.findById(id);
+        let query = ResourceModel.findById(id);
+        if (req.admin) {
+            query = query.populate('exam').populate('subExam');
+        }
+        const resource = await query;
         if (!resource) {
             return res.status(404).json({ message: 'Resource not found' });
         }
@@ -104,7 +108,11 @@ export const getResourceById = async (req, res) => {
 
 export const getAllResources = async (req, res) => {
     try {
-        const resources = await ResourceModel.find();
+        let query = ResourceModel.find();
+        if (req.admin) {
+            query = query.populate('exam').populate('subExam');
+        }
+        const resources = await query;
         res.status(200).json({ message: 'Resources found successfully', resources });
     } catch (error) {
         res.status(500).json({ message: 'Failed to get resources', error: error.message });

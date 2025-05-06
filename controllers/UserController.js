@@ -7,7 +7,11 @@ export const getUserbyId = async (req, res) => {
   const id = req.params.id;
 
   try {
-    const user = await UserModel.findById(id);
+    let query = UserModel.findById(id);
+    if (req.admin) {
+      query = query.populate('exam').populate('subExam');
+    }
+    const user = await query;
     if (user) {
       const { password, ...otherDetails } = user._doc;
 
@@ -33,7 +37,11 @@ export const getUserbyId = async (req, res) => {
 // Get all users
 export const getAllUsers = async (req, res) => {
   try {
-    let users = await UserModel.find();
+    let query = UserModel.find();
+    if (req.admin) {
+      query = query.populate('exam').populate('subExam');
+    }
+    let users = await query;
     users = users.map((user) => {
       const { password, ...otherDetails } = user._doc;
       return otherDetails;

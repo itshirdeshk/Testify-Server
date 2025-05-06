@@ -196,13 +196,21 @@ export const deleteScore = handleAsync(async (req) => {
 });
 
 export const getScoreById = handleAsync(async (req) => {
-    const score = await ScoreModel.findById(req.params.id);
+    let query = ScoreModel.findById(req.params.id);
+    if (req.admin) {
+        query = query.populate('test').populate('user');
+    }
+    const score = await query;
     if (!score) throw new Error('Score not found');
     return { message: 'Score found successfully', data: score };
 });
 
 export const getAllScores = handleAsync(async () => {
-    const scores = await ScoreModel.find();
+    let query = ScoreModel.find();
+    if (req.admin) {
+        query = query.populate('test').populate('user');
+    }
+    const scores = await query;
     return { message: 'Scores found successfully', data: scores };
 });
 

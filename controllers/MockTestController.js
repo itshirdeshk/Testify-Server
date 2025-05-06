@@ -60,7 +60,11 @@ export const getMockTestById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const MockTest = await MockTestModel.findById(id);
+        let query = MockTestModel.findById(id);
+        if (req.admin) {
+            query = query.populate('testSeries');
+        }
+        const MockTest = await query;
 
         if (!MockTest) {
             return res.status(404).json({ message: 'MockTest not found' });
@@ -76,8 +80,11 @@ export const getMockTestById = async (req, res) => {
 // Get all MockTests
 export const getAllMockTests = async (req, res) => {
     try {
-        const MockTests = await MockTestModel.find();
-        res.status(200).json(MockTests);
+        let query = MockTestModel.find();
+        if (req.admin) {
+            query = query.populate('testSeries');
+        }
+        const MockTests = await query;
         res.status(200).json({ message: 'MockTests found successfully', MockTests });
     } catch (error) {
         console.error('Error fetching MockTests:', error);

@@ -116,7 +116,11 @@ export const getTestSeriesById = async (req, res) => {
 // Get all TestSeries
 export const getAllTestSeries = async (req, res) => {
     try {
-        const TestSeries = await TestSeriesModel.find();
+        let query = TestSeriesModel.find();
+        if (req.admin) {
+            query = query.populate('subExam');
+        }
+        const TestSeries = await query;
 
         res.status(200).json({ message: 'TestSeries found successfully', TestSeries });
     } catch (error) {

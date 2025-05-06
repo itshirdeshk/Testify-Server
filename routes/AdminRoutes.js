@@ -25,6 +25,10 @@ import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId
 import { upload } from '../middlewares/multer.js';
 import { createResource, deleteResource, getAllResources, getResourceById, getResourcesBySubExamId, updateResource } from '../controllers/ResourceController.js';
 import { createBanner, deleteBanner, getAllBanners, getBannerById, getBanners, updateBanner } from '../controllers/BannerController.js';
+import { createFAQ, updateFAQ, getFAQById, getAllFAQs, deleteFAQ } from '../controllers/FAQController.js';
+import { createTerms, updateTerms, getTermsById, getAllTerms, deleteTerms } from '../controllers/TermsController.js';
+import { createPrivacyPolicy, updatePrivacyPolicy, getPrivacyPolicyById, getAllPrivacyPolicies, deletePrivacyPolicy } from '../controllers/PrivacyPolicyController.js';
+import { createAboutUs, updateAboutUs, getAboutUsById, getAllAboutUs, deleteAboutUs } from '../controllers/AboutUsController.js';
 
 
 const router = express.Router();
@@ -227,5 +231,33 @@ router.get('/all/banners', checkAdminAuth, getAllBanners);
 
 // GET /api/getBanner/:testSeriesId
 router.get('/getBanners/:testSeriesId', checkAdminAuth, getBanners);
+
+// FAQ
+router.post('/add/faq', checkAdminAuth, createFAQ);
+router.put('/updateFAQById/:id', checkAdminAuth, updateFAQ);
+router.get('/getFAQById/:id', checkAdminAuth, getFAQById);
+router.get('/all/faq', checkAdminAuth, getAllFAQs);
+router.delete('/deleteFAQById/:id', checkAdminAuth, deleteFAQ);
+
+// Terms
+router.post('/add/terms', checkAdminAuth, createTerms);
+router.put('/updateTermsById/:id', checkAdminAuth, updateTerms);
+router.get('/getTermsById/:id', checkAdminAuth, getTermsById);
+router.get('/all/terms', checkAdminAuth, getAllTerms);
+router.delete('/deleteTermsById/:id', checkAdminAuth, deleteTerms);
+
+// Privacy Policy
+router.post('/add/privacy-policy', checkAdminAuth, createPrivacyPolicy);
+router.put('/updatePrivacyPolicyById/:id', checkAdminAuth, updatePrivacyPolicy);
+router.get('/getPrivacyPolicyById/:id', checkAdminAuth, getPrivacyPolicyById);
+router.get('/all/privacy-policy', checkAdminAuth, getAllPrivacyPolicies);
+router.delete('/deletePrivacyPolicyById/:id', checkAdminAuth, deletePrivacyPolicy);
+
+// About Us
+router.post('/add/about-us', checkAdminAuth, createAboutUs);
+router.put('/updateAboutUsById/:id', checkAdminAuth, updateAboutUs);
+router.get('/getAboutUsById/:id', checkAdminAuth, getAboutUsById);
+router.get('/all/about-us', checkAdminAuth, getAllAboutUs);
+router.delete('/deleteAboutUsById/:id', checkAdminAuth, deleteAboutUs);
 
 export default router

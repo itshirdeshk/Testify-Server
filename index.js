@@ -27,7 +27,9 @@ const port = process.env.PORT || 8080; // Use PORT in uppercase for environment 
 const mongodbURI = process.env.MONGOOSE_URI;
 
 // Middleware setup
-app.use(cors());
+app.use(cors({
+    origin: '*'
+}));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(morgan('dev')); // Log HTTP requests for better debugging

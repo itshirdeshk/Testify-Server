@@ -94,7 +94,11 @@ export const updateBanner = async (req, res) => {
 export const getBannerById = async (req, res) => {
     const { id } = req.params;
     try {
-        const banner = await BannerModel.findById(id);
+        let query = BannerModel.findById(id);
+        if (req.admin) {
+            query = query.populate('redirectId').populate('subExam');
+        }
+        const banner = await query;
         if (!banner) {
             return res.status(404).json({ message: 'Banner not found' });
         }
@@ -106,7 +110,13 @@ export const getBannerById = async (req, res) => {
 
 export const getAllBanners = async (req, res) => {
     try {
-        const banners = await BannerModel.find();
+        let query = BannerModel.find();
+        if (req.admin) {
+            query = query.populate('redirectId').populate('subExam');
+        } else {
+            query = query.populate('redirectId');
+        }
+        const banners = await query;
         res.status(200).json({ message: 'Banners found successfully', banners });
     } catch (error) {
         res.status(500).json({ message: 'Failed to get banners', error: error.message });

@@ -148,9 +148,13 @@ export const loginUser = async (req, res) => {
 
         validatePhone(phone);
 
-        const user = await UserModel.findOne({ phone })
-            .populate('exam', { name: 1 })
-            .populate('subExam', { name: 1 });
+        let query = UserModel.findOne({ phone });
+        if (req.admin) {
+            query = query.populate('exam').populate('subExam');
+        } else {
+            query = query.populate('exam', { name: 1 }).populate('subExam', { name: 1 });
+        }
+        const user = await query;
 
         if (!user) {
             return res.status(404).json({
@@ -514,7 +518,12 @@ export const userPasswordReset = async (req, res) => {
 };
 
 export const ProfileUser = async (req, res) => {
-    res.send({ "user": req.user })
+    let query = UserModel.findById(req.user._id);
+    if (req.admin) {
+        query = query.populate('exam').populate('subExam');
+    }
+    const user = await query;
+    res.send({ "user": user })
 }
 
 export const updateLoggedInUserProfile = async (req, res) => {
@@ -678,13 +687,17 @@ export const sendOtpAgain = async (req, res) => {
     });
 }
 
-const updateUserAndReturnResponse = async (user, updates, res) => {
+const updateUserAndReturnResponse = async (user, updates, res, req = null) => {
     updateUserFields(user, updates);
     await user.save();
 
-    const updatedUser = await UserModel.findById(user._id)
-        .populate('exam', { name: 1 })
-        .populate('subExam', { name: 1 });
+    let query = UserModel.findById(user._id);
+    if (req && req.admin) {
+        query = query.populate('exam').populate('subExam');
+    } else {
+        query = query.populate('exam', { name: 1 }).populate('subExam', { name: 1 });
+    }
+    const updatedUser = await query;
 
     const userObj = updatedUser.toObject();
     userObj.examName = updatedUser.exam?.name;

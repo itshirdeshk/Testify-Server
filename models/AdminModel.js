@@ -4,7 +4,10 @@ const { Schema } = mongoose;
 
 const AdminSchema = new Schema(
   {
-    name: {
+    firstName: {
+      type: String,
+    },
+    lastName: {
       type: String,
     },
     email: {

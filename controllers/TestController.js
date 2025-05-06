@@ -125,7 +125,11 @@ export const getTestById = (req, res) => handleAsync(req, res, async () => {
 
 // Get all Test
 export const getAllTest = (req, res) => handleAsync(req, res, async () => {
-    const test = await TestModel.find();
+    let query = TestModel.find();
+    if (req.admin) {
+        query = query.populate('mockTest');
+    }
+    const test = await query;
     return { message: 'Tests found successfully', test };
 });
 
@@ -142,7 +146,7 @@ export const getTestByMockTestId = (req, res) => handleAsync(req, res, async () 
         $and: [
             { mockTest: req.params.mockTestId },
             { _id: { $nin: attemptedTests.map(score => score.test._id) } }
-        ]  
+        ]
     });
     if (!attemptedTests && !unattemptedTests) throw new Error('Tests not found');
 

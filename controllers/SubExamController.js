@@ -104,7 +104,11 @@ export const getSubExamById = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const subExam = await SubExamModel.findById(id);
+        let query = SubExamModel.findById(id);
+        if (req.admin) {
+            query = query.populate('exam');
+        }
+        const subExam = await query;
 
         if (!subExam) {
             return res.status(404).json({ message: 'SubExam not found' });
@@ -120,7 +124,11 @@ export const getSubExamById = async (req, res) => {
 // Get all subcategories
 export const getAllSubExams = async (req, res) => {
     try {
-        const subExams = await SubExamModel.find();
+        let query = SubExamModel.find();
+        if (req.admin) {
+            query = query.populate('exam');
+        }
+        const subExams = await query;
         res.status(200).json({
             message: 'SubExams found successfully',
             subExam: subExams
