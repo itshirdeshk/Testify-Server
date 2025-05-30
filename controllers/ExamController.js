@@ -100,12 +100,19 @@ export const getAllExams = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const { name } = req.query;
 
     try {
-        const totalDocs = await ExamModel.countDocuments();
+        // Build filter object based on provided query parameters
+        const filter = {};
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' };
+        }
+
+        const totalDocs = await ExamModel.countDocuments(filter);
         const totalPages = Math.ceil(totalDocs / limit);
 
-        const exams = await ExamModel.find()
+        const exams = await ExamModel.find(filter)
             .skip(skip)
             .limit(limit);
 

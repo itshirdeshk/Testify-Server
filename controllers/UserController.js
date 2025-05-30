@@ -34,19 +34,45 @@ export const getUserbyId = async (req, res) => {
 };
 
 
-// Get all users
+// Get all users with optional filters
 export const getAllUsers = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const { name, email, phone, subExamId, examId } = req.query;
 
     try {
-        const totalDocs = await UserModel.countDocuments();
+        // Build filter object based on provided query parameters
+        const filter = {};
+        
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' };
+        }
+        if (email) {
+            filter.email = { $regex: email, $options: 'i' };
+        }
+        if (phone) {
+            filter.phone = { $regex: phone, $options: 'i' };
+        }
+        if (subExamId) {
+            filter.subExam = subExamId;
+        }
+        if (examId) {
+            filter.exam = examId;
+        }
+
+        // Get total count with filters
+        const totalDocs = await UserModel.countDocuments(filter);
         const totalPages = Math.ceil(totalDocs / limit);
 
-        let query = UserModel.find()
+        // Build query with filters
+        let query = UserModel.find(filter)
             .skip(skip)
             .limit(limit);
+
+        if (req.admin) {
+            query = query.populate('exam').populate('subExam');
+        }
 
         const users = await query;
 
@@ -63,39 +89,6 @@ export const getAllUsers = async (req, res) => {
     } catch (error) {
         console.error('Error fetching users:', error);
         res.status(500).json({ message: 'Failed to get users', error: error.message });
-    }
-};
-
-// Search for users
-export const searchUsers = async (req, res) => {
-    const { name } = req.query;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    try {
-        const totalDocs = await UserModel.countDocuments({ name: { $regex: name, $options: 'i' } });
-        const totalPages = Math.ceil(totalDocs / limit);
-
-        let query = UserModel.find({ name: { $regex: name, $options: 'i' } })
-            .skip(skip)
-            .limit(limit);
-
-        const users = await query;
-
-        res.status(200).json({
-            users,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalDocs,
-                hasPrevPage: page > 1,
-                hasNextPage: page < totalPages
-            }
-        });
-    } catch (error) {
-        console.error('Error searching users:', error);
-        res.status(500).json({ message: 'Failed to search users', error: error.message });
     }
 };
 

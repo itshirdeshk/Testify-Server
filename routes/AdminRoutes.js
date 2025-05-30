@@ -1,6 +1,6 @@
 import express from 'express';
 import { registerAdmin, loginAdmin, getAdminProfile, updateAdminProfile } from '../controllers/AdminAuthController.js';
-import { getUserbyId, getAllUsers, updateUser, deleteUserById, searchUsers } from '../controllers/UserController.js'
+import { getUserbyId, getAllUsers, updateUser, deleteUserById } from '../controllers/UserController.js'
 import {
     createExam,
     deleteExam,
@@ -18,7 +18,7 @@ import {
 import checkAdminAuth from '../middlewares/checkAdminAuth.js';
 import { getMockTestsByTestSeriesId } from '../controllers/MockTestController.js';
 import { createTestSeries, deleteTestSeries, getAllTestSeries, getTestSeriesById, getTestSeriesBySubExamId, updateTestseries } from '../controllers/TestSeriesController.js';
-import { createTest, deleteTest, getAllTest, getTestById, getTestByMockTestId, updateTest } from '../controllers/TestController.js';
+import { createTest, deleteTest, getAllTests, getTestById, getTestByMockTestId, updateTest } from '../controllers/TestController.js';
 import { createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
 import { createSubExam, deleteSubExam, getAllSubExams, getSubExamById, getSubExamsByExamId, updateSubExam } from '../controllers/SubExamController.js';
 import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId, updateScore } from '../controllers/ScoreController.js';
@@ -39,7 +39,6 @@ router.post('/register', registerAdmin);
 router.post('/login', loginAdmin);
 router.get('/getUserById/:id', checkAdminAuth, getUserbyId);
 router.get('/all/user', checkAdminAuth, getAllUsers);
-router.get('/search/user', checkAdminAuth, searchUsers);
 router.put('/update/:id', checkAdminAuth, updateUser);
 // router.post('/updateProfilePicture/:id', upload.single('profilePicture'), checkAdminAuth, updateUserProfilePicture);
 router.delete('/delete/:id', checkAdminAuth, deleteUserById);
@@ -143,7 +142,7 @@ router.delete('/deleteTestById/:id', checkAdminAuth, deleteTest);
 router.get('/getTestById/:id', checkAdminAuth, getTestById);
 
 // GET /api/getAllTests
-router.get('/all/test', checkAdminAuth, getAllTest);
+router.get('/all/test', checkAdminAuth, getAllTests);
 
 // GET /api/getTestByMockTestId/:id
 router.get('/getTestByMockTestId/:mockTestId', checkAdminAuth, getTestByMockTestId);

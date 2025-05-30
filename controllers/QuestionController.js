@@ -126,12 +126,19 @@ export const getAllQuestions = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const { title } = req.query;
 
     try {
-        const totalDocs = await QuestionModel.countDocuments();
+        // Build filter object based on provided query parameters
+        const filter = {};
+        if (title) {
+            filter.title = { $regex: title, $options: 'i' };
+        }
+
+        const totalDocs = await QuestionModel.countDocuments(filter);
         const totalPages = Math.ceil(totalDocs / limit);
 
-        let query = QuestionModel.find()
+        let query = QuestionModel.find(filter)
             .skip(skip)
             .limit(limit);
 
