@@ -145,7 +145,7 @@ export const getAllTests = async (req, res) => {
             .limit(limit);
 
         if (req.admin) {
-            query = query.populate('testSeries');
+            query = query.populate('mockTest');
         }
 
         const tests = await query;
