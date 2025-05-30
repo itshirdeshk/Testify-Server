@@ -107,15 +107,36 @@ export const getResourceById = async (req, res) => {
 };
 
 export const getAllResources = async (req, res) => {
-    const { skip, limit } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     try {
-        let query = ResourceModel.find().skip(skip).limit(limit);
+        const totalDocs = await ResourceModel.countDocuments();
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = ResourceModel.find()
+            .skip(skip)
+            .limit(limit);
+
         if (req.admin) {
             query = query.populate('exam').populate('subExam');
         }
+
         const resources = await query;
-        res.status(200).json({ message: 'Resources found successfully', resources });
+
+        res.status(200).json({
+            resources,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
     } catch (error) {
+        console.error('Error fetching resources:', error);
         res.status(500).json({ message: 'Failed to get resources', error: error.message });
     }
 };

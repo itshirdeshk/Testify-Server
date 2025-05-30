@@ -122,15 +122,40 @@ export const getQuestionById = (req, res) => handleAsync(req, res, async () => {
     return { message: 'Question found successfully', question };
 });
 
-export const getAllQuestions = (req, res) => handleAsync(req, res, async () => {
-    const {skip, limit} = req.query;
-    let query = QuestionModel.find().skip(skip).limit(limit);
-    if (req.admin) {
-        query = query.populate('test');
+export const getAllQuestions = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+        const totalDocs = await QuestionModel.countDocuments();
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = QuestionModel.find()
+            .skip(skip)
+            .limit(limit);
+
+        if (req.admin) {
+            query = query.populate('test');
+        }
+
+        const questions = await query;
+
+        res.status(200).json({
+            questions,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching questions:', error);
+        res.status(500).json({ message: 'Failed to get questions', error: error.message });
     }
-    const questions = await query;
-    return { message: 'Questions found successfully', questions };
-});
+};
 
 export const getQuestionsByTestId = (req, res) => handleAsync(req, res, async () => {
     const questions = await QuestionModel.find({ test: req.params.testId });

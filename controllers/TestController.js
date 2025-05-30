@@ -124,15 +124,40 @@ export const getTestById = (req, res) => handleAsync(req, res, async () => {
 });
 
 // Get all Test
-export const getAllTest = (req, res) => handleAsync(req, res, async () => {
-    const { skip, limit } = req.query;
-    let query = TestModel.find().skip(skip).limit(limit);
-    if (req.admin) {
-        query = query.populate('mockTest');
+export const getAllTests = async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    try {
+        const totalDocs = await TestModel.countDocuments();
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = TestModel.find()
+            .skip(skip)
+            .limit(limit);
+
+        if (req.admin) {
+            query = query.populate('testSeries');
+        }
+
+        const tests = await query;
+
+        res.status(200).json({
+            tests,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching tests:', error);
+        res.status(500).json({ message: 'Failed to get tests', error: error.message });
     }
-    const test = await query;
-    return { message: 'Tests found successfully', test };
-});
+};
 
 // Get Test by MockTest ID
 export const getTestByMockTestId = (req, res) => handleAsync(req, res, async () => {

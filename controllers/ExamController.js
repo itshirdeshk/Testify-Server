@@ -97,11 +97,30 @@ export const getExamById = async (req, res) => {
 };
 
 export const getAllExams = async (req, res) => {
-    const {skip, limit} = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     try {
-        const exams = await ExamModel.find().skip(skip).limit(limit);
-        res.status(200).json({ message: 'Exams found successfully', exams });
+        const totalDocs = await ExamModel.countDocuments();
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        const exams = await ExamModel.find()
+            .skip(skip)
+            .limit(limit);
+
+        res.status(200).json({
+            exams,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
     } catch (error) {
+        console.error('Error fetching exams:', error);
         res.status(500).json({ message: 'Failed to get exams', error: error.message });
     }
 };

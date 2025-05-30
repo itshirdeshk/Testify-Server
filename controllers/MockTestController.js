@@ -79,17 +79,37 @@ export const getMockTestById = async (req, res) => {
 
 // Get all MockTests
 export const getAllMockTests = async (req, res) => {
-    const { skip, limit } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     try {
-        let query = MockTestModel.find().skip(skip).limit(limit);
+        const totalDocs = await MockTestModel.countDocuments();
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = MockTestModel.find()
+            .skip(skip)
+            .limit(limit);
+
         if (req.admin) {
             query = query.populate('testSeries');
         }
-        const MockTests = await query;
-        res.status(200).json({ message: 'MockTests found successfully', MockTests });
+
+        const mockTests = await query;
+
+        res.status(200).json({
+            mockTests,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
     } catch (error) {
-        console.error('Error fetching MockTests:', error);
-        res.status(500).json({ message: 'Failed to get MockTests', error });
+        console.error('Error fetching mock tests:', error);
+        res.status(500).json({ message: 'Failed to get mock tests', error: error.message });
     }
 };
 

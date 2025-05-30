@@ -123,16 +123,34 @@ export const getSubExamById = async (req, res) => {
 
 // Get all subcategories
 export const getAllSubExams = async (req, res) => {
-    const {skip, limit} = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     try {
-        let query = SubExamModel.find().skip(skip).limit(limit);
+        // Get total count of documents
+        const totalDocs = await SubExamModel.countDocuments();
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = SubExamModel.find()
+            .skip(skip)
+            .limit(limit);
+
         if (req.admin) {
             query = query.populate('exam');
         }
+
         const subExams = await query;
+
         res.status(200).json({
-            message: 'SubExams found successfully',
-            subExam: subExams
+            subExams,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
         });
     } catch (error) {
         console.error('Error fetching SubExams:', error);

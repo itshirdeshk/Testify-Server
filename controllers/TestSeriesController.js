@@ -115,18 +115,37 @@ export const getTestSeriesById = async (req, res) => {
 
 // Get all TestSeries
 export const getAllTestSeries = async (req, res) => {
-    const { skip, limit } = req.query;
-    try {
-        let query = TestSeriesModel.find().skip(skip).limit(limit);
-        if (req.admin) {
-            query = query.populate('subExam');
-        }
-        const TestSeries = await query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
-        res.status(200).json({ message: 'TestSeries found successfully', TestSeries });
+    try {
+        const totalDocs = await TestSeriesModel.countDocuments();
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = TestSeriesModel.find()
+            .skip(skip)
+            .limit(limit);
+
+        if (req.admin) {
+            query = query.populate('exam').populate('subExam');
+        }
+
+        const testSeries = await query;
+
+        res.status(200).json({
+            testSeries,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
     } catch (error) {
-        console.error('Error fetching TestSeries:', error);
-        res.status(500).json({ message: 'Failed to get TestSeries', error });
+        console.error('Error fetching test series:', error);
+        res.status(500).json({ message: 'Failed to get test series', error: error.message });
     }
 };
 
