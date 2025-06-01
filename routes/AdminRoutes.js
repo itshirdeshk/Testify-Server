@@ -30,7 +30,7 @@ import { createTerms, updateTerms, getTermsById, getAllTerms, deleteTerms } from
 import { createPrivacyPolicy, updatePrivacyPolicy, getPrivacyPolicyById, getAllPrivacyPolicies, deletePrivacyPolicy } from '../controllers/PrivacyPolicyController.js';
 import { createAboutUs, updateAboutUs, getAboutUsById, getAllAboutUs, deleteAboutUs } from '../controllers/AboutUsController.js';
 import { getLeaderboardByTestId } from '../controllers/LeaderboardController.js';
-import { createDashboard, getDashboard, updateDashboard } from '../controllers/DashboardController.js';
+import { getDashboard } from '../controllers/DashboardController.js';
 
 
 const router = express.Router();
@@ -266,8 +266,6 @@ router.delete('/deleteAboutUsById/:id', checkAdminAuth, deleteAboutUs);
 router.get('/getLeaderboardByTestId/:testId', checkAdminAuth, getLeaderboardByTestId);
 
 // Dashboard
-router.post('/add/dashboard', checkAdminAuth, createDashboard);
-router.put('/updateDashboard', checkAdminAuth, updateDashboard);
 router.get('/getDashboard', checkAdminAuth, getDashboard);
 
 export default router
