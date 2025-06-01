@@ -4,14 +4,12 @@ import MockTestModel from "../models/MockTestModel.js";
 
 // Create a new mockTest
 export const createMockTest = async (req, res) => {
-    const { name, totalTests, testSeriesId, freeTests } = req.body;
+    const { name, testSeriesId } = req.body;
 
     try {
         const mockTest = await MockTestModel.create({
             name,
-            totalTests,
-            testSeries: testSeriesId,
-            freeTests
+            testSeries: testSeriesId
         });
 
         res.status(201).json({ message: 'MockTest created successfully', mockTest });

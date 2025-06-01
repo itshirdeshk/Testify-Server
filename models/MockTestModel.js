@@ -5,8 +5,8 @@ const { Schema } = mongoose;
 const MockTestSchema = new Schema(
     {
         name: { type: String, required: true },
-        totalTests: { type: Number, required: true, min: 0 },
-        freeTests: { type: Number, required: true, min: 0 },
+        totalTests: { type: Number, min: 0 },
+        freeTests: { type: Number, min: 0 },
         testSeries: { type: mongoose.Schema.Types.ObjectId, ref: 'TestSeries', required: true },
     },
     { timestamps: true }

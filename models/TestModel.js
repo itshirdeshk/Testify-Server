@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 const TestSchema = new Schema(
     {
         title: { type: String, required: true },
-        totalQuestions: { type: Number, required: true, min: 1 },
+        totalQuestions: { type: Number, min: 1 },
         duration: { type: Number, required: true, min: 1 }, // in minutes
         totalMarks: { type: Number, required: true, min: 1 },
         isFree: { type: Boolean, required: true },

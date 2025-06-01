@@ -5,7 +5,7 @@ import TestSeriesModel from '../models/TestSeriesModel.js';
 
 // Create a new Test Series
 export const createTestSeries = async (req, res) => {
-    const { name, totalTests, subExamId, freeTests } = req.body;
+    const { name, subExamId } = req.body;
     const imageFile = req.file.buffer;
 
     try {
@@ -22,9 +22,7 @@ export const createTestSeries = async (req, res) => {
             const testSeries = await TestSeriesModel.create({
                 name,
                 image: result.secure_url,
-                totalTests,
                 subExam: subExamId,
-                freeTests
             });
 
             res.status(201).json({ message: 'TestSeries created successfully', testSeries });
