@@ -44,7 +44,7 @@ router.put('/update/:id', checkAdminAuth, updateUser);
 router.delete('/delete/:id', checkAdminAuth, deleteUserById);
 
 router.get('/me', checkAdminAuth, getAdminProfile);
-router.get('/updateProfile', checkAdminAuth, updateAdminProfile);
+router.put('/updateProfile', checkAdminAuth, updateAdminProfile);
 
 // exams
 // POST /api/exams
