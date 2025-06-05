@@ -89,7 +89,9 @@ export const updateAdminProfile = async (req, res) => {
         }
 
         if (password) {
-            admin.password = password;
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            admin.password = hashedPassword;
         }
 
         await admin.save();
