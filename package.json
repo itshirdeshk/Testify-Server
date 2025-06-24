@@ -4,12 +4,10 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  "engines": {
-    "node": "18.x"
-  },
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "postinstall": "node scripts/fix-pdf-parse.js"
   },
   "author": "",
   "license": "ISC",
@@ -30,6 +28,7 @@
     "nodemailer": "^6.9.13",
     "nodemon": "^3.1.0",
     "path": "^0.12.7",
+    "pdf-parse": "^1.1.0",
     "serverless-http": "^3.2.0",
     "uuid": "^10.0.0"
   }

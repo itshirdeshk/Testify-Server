@@ -44,6 +44,14 @@ const UserSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "SubExam",
     },
+    isPremium: {
+      type: Boolean,
+      default: false,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt fields
 );

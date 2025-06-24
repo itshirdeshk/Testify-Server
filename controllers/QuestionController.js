@@ -1,3 +1,4 @@
+import PdfParse from 'pdf-parse';
 import QuestionModel from '../models/QuestionModel.js';
 import TestModel from '../models/TestModel.js';
 import mongoose from 'mongoose';
@@ -169,3 +170,62 @@ export const getQuestionsByTestId = (req, res) => handleAsync(req, res, async ()
     if (!questions) throw new Error('Questions not found');
     return { message: 'Questions found successfully', questions };
 });
+
+export const createBulkQuestions = (req, res) =>
+    handleAsync(req, res, async () => {
+        const { testId, positiveMarks, negativeMarks } = req.body;
+        const pdfBuffer = req.file.buffer;        try {
+            const pdfData = await PdfParse(pdfBuffer);
+            const rawText = pdfData.text;
+
+            const cleanedText = rawText.replace(/\r?\n|\r/g, '').trim();
+
+            let questions;
+            try {
+                questions = JSON.parse(cleanedText);
+            } catch (jsonErr) {
+                return res.status(400).json({
+                    error: 'Invalid JSON structure in PDF',
+                    raw: cleanedText
+                });
+            }
+
+            if (!Array.isArray(questions) || questions.length === 0) {
+                throw new Error('Invalid questions array');
+            }
+
+
+            return handleTransaction(async (session) => {
+                const createdQuestions = await QuestionModel.insertMany(
+                    questions.map((q) => ({
+                        ...q,
+                        test: testId,
+                        positiveMarks,
+                        negativeMarks
+                    })),
+                    { session }
+                );
+
+                const totalMarks = createdQuestions.length * (positiveMarks);
+
+                await updateTestStats({
+                    testId,
+                    positiveMarks: totalMarks,
+                    session,
+                    increment: createdQuestions.length
+                });
+
+                return {
+                    message: 'Bulk questions created successfully',
+                    questions: createdQuestions,
+                    status: 201
+                };
+            });
+        } catch (error) {
+            console.error('Error:', error);
+            res.status(500).json({
+                message: 'Bulk Error',
+                error: error.message
+            });
+        }
+    });

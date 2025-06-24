@@ -1,6 +1,6 @@
 import express from 'express';
 import { registerAdmin, loginAdmin, getAdminProfile, updateAdminProfile } from '../controllers/AdminAuthController.js';
-import { getUserbyId, getAllUsers, updateUser, deleteUserById } from '../controllers/UserController.js'
+import { getUserbyId, getAllUsers, updateUser, deleteUserById, makeUserPremium, makeUserNormal, blockUser, unblockUser } from '../controllers/UserController.js'
 import {
     createExam,
     deleteExam,
@@ -19,7 +19,7 @@ import checkAdminAuth from '../middlewares/checkAdminAuth.js';
 import { getMockTestsByTestSeriesId } from '../controllers/MockTestController.js';
 import { createTestSeries, deleteTestSeries, getAllTestSeries, getTestSeriesById, getTestSeriesBySubExamId, updateTestseries } from '../controllers/TestSeriesController.js';
 import { createTest, deleteTest, getAllTests, getTestById, getTestByMockTestId, updateTest } from '../controllers/TestController.js';
-import { createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
+import { createBulkQuestions, createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
 import { createSubExam, deleteSubExam, getAllSubExams, getSubExamById, getSubExamsByExamId, updateSubExam } from '../controllers/SubExamController.js';
 import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId, updateScore } from '../controllers/ScoreController.js';
 import { upload } from '../middlewares/multer.js';
@@ -42,6 +42,10 @@ router.get('/all/user', checkAdminAuth, getAllUsers);
 router.put('/update/:id', checkAdminAuth, updateUser);
 // router.post('/updateProfilePicture/:id', upload.single('profilePicture'), checkAdminAuth, updateUserProfilePicture);
 router.delete('/delete/:id', checkAdminAuth, deleteUserById);
+router.get('/makePremium/:id', checkAdminAuth, makeUserPremium);
+router.get('/makeNormal/:id', checkAdminAuth, makeUserNormal);
+router.get('/blockUser/:id', checkAdminAuth, blockUser);
+router.get('/unblockUser/:id', checkAdminAuth, unblockUser);
 
 router.get('/me', checkAdminAuth, getAdminProfile);
 router.put('/updateProfile', checkAdminAuth, updateAdminProfile);
@@ -168,7 +172,8 @@ router.get('/all/question', checkAdminAuth, getAllQuestions);
 // GET /api/getQuestionsByTestId/:id
 router.get('/getQuestionsByTestId/:testId', checkAdminAuth, getQuestionsByTestId);
 
-
+// GET /api/createBulkQuestions
+router.post('/createBulkQuestions', upload.single("file"), checkAdminAuth, createBulkQuestions);
 
 // Score
 // POST /api/score

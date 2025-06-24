@@ -39,7 +39,7 @@ export const getAllUsers = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
-  const { search, subExamId, examId } = req.query;
+  const { search, subExamId, examId, premium } = req.query;
 
   try {
     // Build filter object based on provided query parameters
@@ -70,6 +70,9 @@ export const getAllUsers = async (req, res) => {
     }
     if (examId) {
       filter.exam = examId;
+    }
+    if (premium) {
+      filter.isPremium = premium; // Filter for premium users
     }
 
     // Get total count with filters
@@ -195,3 +198,85 @@ export const deleteUserById = async (req, res) => {
     res.status(500).json({ status: 'failed', message: 'Unable to delete user' });
   }
 };
+
+export const makeUserPremium = async (req, res) => {
+  const userId = req.params.id; // User ID from the request parameters
+
+  try {
+    // Retrieve the user from the database
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: 'failed', message: 'User not found' });
+    } else {
+      user.isPremium = true; // Set the isPremium field to true
+      await user.save(); // Save the updated user document
+      res.status(200).json({ status: 'success', message: 'User made premium successfully', user });
+    }
+  }
+  catch (error) {
+    console.error('Error making user premium:', error);
+    res.status(500).json({ status: 'failed', message: 'Unable to make user premium' });
+  }
+}
+
+export const makeUserNormal = async (req, res) => {
+  const userId = req.params.id; // User ID from the request parameters
+
+  try {
+    // Retrieve the user from the database
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: 'failed', message: 'User not found' });
+    } else {
+      user.isPremium = false; // Set the isPremium field to false
+      await user.save(); // Save the updated user document
+      res.status(200).json({ status: 'success', message: 'User made normal successfully', user });
+    }
+  }
+  catch (error) {
+    console.error('Error making user normal:', error);
+    res.status(500).json({ status: 'failed', message: 'Unable to make user normal' });
+  }
+}
+
+// Block a user
+export const blockUser = async (req, res) => {
+  const userId = req.params.id; // User ID from the request parameters
+
+  try {
+    // Retrieve the user from the database
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: 'failed', message: 'User not found' });
+    } else {
+      user.isBlocked = true; // Set the isBlocked field to true
+      await user.save(); // Save the updated user document
+      res.status(200).json({ status: 'success', message: 'User blocked successfully', user });
+    }
+  }
+  catch (error) {
+    console.error('Error blocking user:', error);
+    res.status(500).json({ status: 'failed', message: 'Unable to block user' });
+  }
+}
+
+// Unblock a user
+export const unblockUser = async (req, res) => {
+  const userId = req.params.id; // User ID from the request parameters
+
+  try {
+    // Retrieve the user from the database
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ status: 'failed', message: 'User not found' });
+    } else {
+      user.isBlocked = false; // Set the isBlocked field to false
+      await user.save(); // Save the updated user document
+      res.status(200).json({ status: 'success', message: 'User unblocked successfully', user });
+    }
+  }
+  catch (error) {
+    console.error('Error unblocking user:', error);
+    res.status(500).json({ status: 'failed', message: 'Unable to unblock user' });
+  }
+}
