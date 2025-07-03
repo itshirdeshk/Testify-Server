@@ -59,11 +59,11 @@ const handleTransaction = async (operation) => {
 
 // Create a new Test
 export const createTest = (req, res) => handleAsync(req, res, async () => {
-    const { title, totalQuestions, duration, totalMarks, mockTestId, isFree } = req.body;
+    const { title, duration, mockTestId, isFree } = req.body;
 
     return handleTransaction(async (session) => {
         const [test] = await TestModel.create([{
-            title, totalQuestions, duration, totalMarks, mockTest: mockTestId, isFree
+            title, duration, mockTest: mockTestId, isFree
         }], { session });
 
         const { mockTest, testSeries } = await getTestRelations(mockTestId, session);
