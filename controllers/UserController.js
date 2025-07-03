@@ -39,7 +39,7 @@ export const getAllUsers = async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
-  const { search, subExamId, examId, premium } = req.query;
+  const { search, subExamId, examId, premium, blocked } = req.query;
 
   try {
     // Build filter object based on provided query parameters
@@ -73,6 +73,9 @@ export const getAllUsers = async (req, res) => {
     }
     if (premium) {
       filter.isPremium = premium; // Filter for premium users
+    }
+    if (blocked) {
+      filter.isBlocked = blocked; // Filter for blocked users
     }
 
     // Get total count with filters
