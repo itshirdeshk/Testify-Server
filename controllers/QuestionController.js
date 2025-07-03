@@ -210,7 +210,7 @@ export const createBulkQuestions = (req, res) =>
 
                 await updateTestStats({
                     testId,
-                    positiveMarks: totalMarks,
+                    positiveMarks,
                     session,
                     increment: createdQuestions.length
                 });

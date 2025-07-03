@@ -5,12 +5,12 @@ const { Schema } = mongoose;
 const TestSchema = new Schema(
     {
         title: { type: String, required: true },
-        totalQuestions: { type: Number, min: 1 },
-        duration: { type: Number, required: true, min: 1 }, // in minutes
-        totalMarks: { type: Number, required: true, min: 1 },
+        totalQuestions: { type: Number, default: 0},
+        duration: { type: Number, required: true }, // in minutes
+        totalMarks: { type: Number, default: 0 },
         isFree: { type: Boolean, required: true },
-        positiveMarks: { type: Number, required: true, min: 0 },
-        negativeMarks: { type: Number, required: true, min: 0 },
+        positiveMarks: { type: Number, min: 0 },
+        negativeMarks: { type: Number, min: 0 },
         mockTest: { type: mongoose.Schema.Types.ObjectId, ref: 'MockTest', required: true },
     },
     { timestamps: true }
