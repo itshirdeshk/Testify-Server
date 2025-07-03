@@ -163,6 +163,13 @@ export const loginUser = async (req, res) => {
             });
         }
 
+        if (user.isBlocked) {
+            return res.status(403).json({
+                status: 'failed',
+                message: 'User account is blocked. Please contact support'
+            });
+        }
+
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
@@ -178,7 +185,8 @@ export const loginUser = async (req, res) => {
                 message: "Please verify your email before logging in"
             });
         }
-
+        const token = generateAccessToken(user._id);
+    
         const otp = Math.floor(100000 + Math.random() * 900000);
         user.otp = otp;
         user.otpCreatedAt = new Date();
@@ -191,7 +199,6 @@ export const loginUser = async (req, res) => {
             html: `<h1>Your login verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
         });
 
-        const token = generateAccessToken(user._id);
 
         res.status(200).json({
             status: "success",
@@ -204,7 +211,8 @@ export const loginUser = async (req, res) => {
                 phone: user.phone,
                 exam: user.exam,
                 subExam: user.subExam,
-                profilePicture: user.profilePicture
+                profilePicture: user.profilePicture,
+                premium: user.isPremium
             }
         });
     } catch (error) {
@@ -622,6 +630,7 @@ export const updateLoggedInUserProfile = async (req, res) => {
                         phone,
                         examId,
                         subExamId,
+                        premium: user.isPremium,
                         profilePicture: result.secure_url
                     }, res);
                 } catch (error) {
@@ -640,7 +649,8 @@ export const updateLoggedInUserProfile = async (req, res) => {
                     email,
                     phone,
                     examId,
-                    subExamId
+                    subExamId,
+                    premium: user.isPremium,
                 }, res);
             } catch (error) {
                 return res.status(500).json({
