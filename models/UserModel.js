@@ -52,6 +52,10 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    tokenInvalidBefore: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt fields
 );

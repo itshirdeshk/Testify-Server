@@ -73,8 +73,8 @@ const hashPassword = async (password) => {
     return await bcrypt.hash(password, salt);
 };
 
-const generateAccessToken = (userId) => {
-    return jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+const generateAccessToken = (userId, tokenInvalidBefore) => {
+    return jwt.sign({ userId, tokenInvalidBefore }, process.env.JWT_SECRET, { expiresIn: '7d' });
 };
 
 export const registerUser = async (req, res) => {
@@ -118,7 +118,7 @@ export const registerUser = async (req, res) => {
         });
         await newUser.save();
 
-        const token = generateAccessToken(newUser._id);
+        const token = generateAccessToken(newUser._id, newUser.tokenInvalidBefore);
 
         res.status(201).json({
             status: "success",
@@ -185,7 +185,7 @@ export const loginUser = async (req, res) => {
                 message: "Please verify your email before logging in"
             });
         }
-        const token = generateAccessToken(user._id);
+        const token = generateAccessToken(user._id, user.tokenInvalidBefore);
     
         const otp = Math.floor(100000 + Math.random() * 900000);
         user.otp = otp;

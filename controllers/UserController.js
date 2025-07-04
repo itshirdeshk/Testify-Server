@@ -212,6 +212,7 @@ export const makeUserPremium = async (req, res) => {
       return res.status(404).json({ status: 'failed', message: 'User not found' });
     } else {
       user.isPremium = true; // Set the isPremium field to true
+      user.tokenInvalidBefore = new Date(); // Invalidate previous tokens
       await user.save(); // Save the updated user document
       res.status(200).json({ status: 'success', message: 'User made premium successfully', user });
     }
@@ -232,6 +233,7 @@ export const makeUserNormal = async (req, res) => {
       return res.status(404).json({ status: 'failed', message: 'User not found' });
     } else {
       user.isPremium = false; // Set the isPremium field to false
+      user.tokenInvalidBefore = new Date(); // Invalidate previous tokens
       await user.save(); // Save the updated user document
       res.status(200).json({ status: 'success', message: 'User made normal successfully', user });
     }
@@ -253,6 +255,7 @@ export const blockUser = async (req, res) => {
       return res.status(404).json({ status: 'failed', message: 'User not found' });
     } else {
       user.isBlocked = true; // Set the isBlocked field to true
+      user.tokenInvalidBefore = new Date(); // Invalidate previous tokens
       await user.save(); // Save the updated user document
       res.status(200).json({ status: 'success', message: 'User blocked successfully', user });
     }
@@ -274,6 +277,7 @@ export const unblockUser = async (req, res) => {
       return res.status(404).json({ status: 'failed', message: 'User not found' });
     } else {
       user.isBlocked = false; // Set the isBlocked field to false
+      user.tokenInvalidBefore = new Date(); // Invalidate previous tokens
       await user.save(); // Save the updated user document
       res.status(200).json({ status: 'success', message: 'User unblocked successfully', user });
     }

@@ -10,10 +10,18 @@ var checkUserAuth = async (req, res, next) => {
       token = authorization.split(' ')[1]
 
       // Verify Token
-      const { userId } = jwt.verify(token, process.env.JWT_SECRET)
+      const { userId, tokenInvalidBefore } = jwt.verify(token, process.env.JWT_SECRET)
 
       // Get User from Token
-      req.user = await UserModel.findById(userId);
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return res.status(401).send({ "status": "failed", "message": "Unauthorized User" });
+      }
+      // If user's tokenInvalidBefore is set and is newer than the token's, invalidate the token
+      if (user.tokenInvalidBefore && (!tokenInvalidBefore || new Date(tokenInvalidBefore) < new Date(user.tokenInvalidBefore))) {
+        return res.status(401).send({ "status": "failed", "message": "Session expired. Please log in again." });
+      }
+      req.user = user;
 
       next()
     } catch (error) {
