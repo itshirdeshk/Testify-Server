@@ -31,6 +31,7 @@ import { createPrivacyPolicy, updatePrivacyPolicy, getPrivacyPolicyById, getAllP
 import { createAboutUs, updateAboutUs, getAboutUsById, getAllAboutUs, deleteAboutUs } from '../controllers/AboutUsController.js';
 import { getLeaderboardByTestId } from '../controllers/LeaderboardController.js';
 import { getDashboard } from '../controllers/DashboardController.js';
+import { getUserNotifications, sendNotification } from '../controllers/NotificationController.js';
 
 
 const router = express.Router();
@@ -272,5 +273,9 @@ router.get('/getLeaderboardByTestId/:testId', checkAdminAuth, getLeaderboardByTe
 
 // Dashboard
 router.get('/getDashboard', checkAdminAuth, getDashboard);
+
+// Notification
+router.post('/notification/send', checkAdminAuth, sendNotification);
+router.get('/getUserNotifications/:id', checkAdminAuth, getUserNotifications);
 
 export default router

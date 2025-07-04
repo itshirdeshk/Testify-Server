@@ -287,3 +287,17 @@ export const unblockUser = async (req, res) => {
     res.status(500).json({ status: 'failed', message: 'Unable to unblock user' });
   }
 }
+
+// Save device token for push notifications
+export const saveDeviceToken = async (req, res) => {
+  const userId = req.user._id;
+  const { deviceToken } = req.body;
+  if (!deviceToken) return res.status(400).json({ message: 'Device token required' });
+
+  try {
+    await UserModel.findByIdAndUpdate(userId, { $addToSet: { deviceTokens: deviceToken } });
+    res.json({ message: 'Device token saved' });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to save device token', error: error.message });
+  }
+};

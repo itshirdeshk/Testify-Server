@@ -56,6 +56,7 @@ const UserSchema = new Schema(
       type: Date,
       default: null,
     },
+    deviceTokens: [{ type: String }], // FCM device tokens for push notifications
   },
   { timestamps: true } // Automatically adds createdAt and updatedAt fields
 );
