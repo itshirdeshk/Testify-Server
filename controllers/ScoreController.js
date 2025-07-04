@@ -210,13 +210,20 @@ export const getAllScores = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const {title} = req.query;
+    const { title, userId } = req.query;
 
     try {
         // Build filter object based on provided query parameters
         const filter = {};
         if (title) {
             filter.title = { $regex: title, $options: 'i' };
+        }
+
+        if (userId) {
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                return res.status(400).json({ message: 'Invalid user ID format' });
+            }
+            filter.user = userId;
         }
 
         const totalDocs = await ScoreModel.countDocuments(filter);
