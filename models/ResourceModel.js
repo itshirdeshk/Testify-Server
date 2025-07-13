@@ -5,7 +5,6 @@ const ResourceSchema = new Schema({
     url: { type: String, required: true },
     size: { type: String, required: true },
     description: { type: String, required: true },
-    typeOfFile: { type: String, required: true },
     exam: { type: Schema.Types.ObjectId, ref: "Exam" },
     subExam: { type: Schema.Types.ObjectId, ref: "SubExam" },
 });

@@ -3,7 +3,7 @@ import cloudinary from '../cloudinaryConfig/cloudinaryConfig.js';
 import ResourceModel from '../models/ResourceModel.js';
 
 export const createResource = async (req, res) => {
-    const { title, description, typeOfFile, exam, subExam } = req.body;
+    const { title, description, exam, subExam } = req.body;
     const resourceFile = req.file.buffer;
 
     try {
@@ -23,7 +23,6 @@ export const createResource = async (req, res) => {
                 url: result.secure_url, // Save the Cloudinary URL
                 size: ((result.bytes) / 1000000).toFixed(2),
                 description,
-                typeOfFile,
                 exam,
                 subExam
             });
