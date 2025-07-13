@@ -212,7 +212,8 @@ export const loginUser = async (req, res) => {
                 exam: user.exam,
                 subExam: user.subExam,
                 profilePicture: user.profilePicture,
-                premium: user.isPremium
+                premium: user.isPremium,
+                isUserVerified: user.isUserVerified,
             }
         });
     } catch (error) {
