@@ -180,29 +180,43 @@ export const loginUser = async (req, res) => {
         }
 
         if (!user.isUserVerified) {
-            return res.status(403).json({
-                status: "failed",
-                message: "Please verify your email before logging in"
+            const token = generateAccessToken(user._id, user.tokenInvalidBefore);
+
+            const otp = Math.floor(100000 + Math.random() * 900000);
+            user.otp = otp;
+            user.otpCreatedAt = new Date();
+            await user.save();
+
+            await transporter.sendMail({
+                from: process.env.EMAIL_FROM,
+                to: user.email,
+                subject: "EdTech - Login Verification OTP",
+                html: `<h1>Your login verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
+            });
+
+
+            return res.status(200).json({
+                status: "success",
+                message: "Login successful. Please verify with the OTP sent to your email",
+                token,
+                user: {
+                    id: user._id,
+                    name: user.name,
+                    email: user.email,
+                    phone: user.phone,
+                    exam: user.exam,
+                    subExam: user.subExam,
+                    profilePicture: user.profilePicture,
+                    premium: user.isPremium,
+                    isUserVerified: user.isUserVerified,
+                }
             });
         }
         const token = generateAccessToken(user._id, user.tokenInvalidBefore);
-    
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        user.otp = otp;
-        user.otpCreatedAt = new Date();
-        await user.save();
-
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: user.email,
-            subject: "EdTech - Login Verification OTP",
-            html: `<h1>Your login verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
-        });
-
 
         res.status(200).json({
             status: "success",
-            message: "Login successful. Please verify with the OTP sent to your email",
+            message: "Login successful",
             token,
             user: {
                 id: user._id,
