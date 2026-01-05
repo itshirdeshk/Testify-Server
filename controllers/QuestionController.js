@@ -174,15 +174,16 @@ export const getQuestionsByTestId = (req, res) => handleAsync(req, res, async ()
 export const createBulkQuestions = (req, res) =>
     handleAsync(req, res, async () => {
         const { testId, positiveMarks, negativeMarks } = req.body;
-        const pdfBuffer = req.file.buffer;        try {
+        const pdfBuffer = req.file.buffer; try {
             const pdfData = await PdfParse(pdfBuffer);
             const rawText = pdfData.text;
 
             const cleanedText = rawText.replace(/\r?\n|\r/g, '').trim();
-
             let questions;
             try {
                 questions = JSON.parse(cleanedText);
+                console.log(questions);
+
             } catch (jsonErr) {
                 return res.status(400).json({
                     error: 'Invalid JSON structure in PDF',
@@ -194,11 +195,11 @@ export const createBulkQuestions = (req, res) =>
                 throw new Error('Invalid questions array');
             }
 
-
             return handleTransaction(async (session) => {
                 const createdQuestions = await QuestionModel.insertMany(
                     questions.map((q) => ({
-                        ...q,
+                        title: q.question,
+                        options: q.options,
                         test: testId,
                         positiveMarks,
                         negativeMarks
