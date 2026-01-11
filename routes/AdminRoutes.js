@@ -19,7 +19,7 @@ import checkAdminAuth from '../middlewares/checkAdminAuth.js';
 import { getMockTestsByTestSeriesId } from '../controllers/MockTestController.js';
 import { createTestSeries, deleteTestSeries, getAllTestSeries, getTestSeriesById, getTestSeriesBySubExamId, updateTestseries } from '../controllers/TestSeriesController.js';
 import { createTest, deleteTest, getAllTests, getTestById, getTestByMockTestId, updateTest } from '../controllers/TestController.js';
-import { createBulkQuestions, createQuestion, deleteQuestion, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
+import { createBulkQuestions, createQuestion, deleteQuestion, deleteBulkQuestions, getAllQuestions, getQuestionById, getQuestionsByTestId, updateQuestion } from '../controllers/QuestionController.js';
 import { createSubExam, deleteSubExam, getAllSubExams, getSubExamById, getSubExamsByExamId, updateSubExam } from '../controllers/SubExamController.js';
 import { createScore, deleteScore, getAllScores, getScoreById, getScoresByTestId, updateScore } from '../controllers/ScoreController.js';
 import { upload } from '../middlewares/multer.js';
@@ -163,6 +163,9 @@ router.put('/updateQuestionById/:id', checkAdminAuth, updateQuestion);
 
 // DELETE /api/question/:id
 router.delete('/deleteQuestionById/:id', checkAdminAuth, deleteQuestion);
+
+// POST /api/deleteBulkQuestions
+router.post('/deleteBulkQuestions', checkAdminAuth, deleteBulkQuestions);
 
 // GET /api/question/:id
 router.get('/getQuestionById/:id', checkAdminAuth, getQuestionById);

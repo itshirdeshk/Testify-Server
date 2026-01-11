@@ -127,13 +127,16 @@ export const getAllQuestions = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    const { title } = req.query;
+    const { title, testId } = req.query;
 
     try {
         // Build filter object based on provided query parameters
         const filter = {};
         if (title) {
             filter.title = { $regex: title, $options: 'i' };
+        }
+        if (testId) {
+            filter.test = testId;
         }
 
         const totalDocs = await QuestionModel.countDocuments(filter);
@@ -230,3 +233,57 @@ export const createBulkQuestions = (req, res) =>
             });
         }
     });
+
+// Bulk Delete Questions
+export const deleteBulkQuestions = (req, res) => handleAsync(req, res, async () => {
+    const { questionIds } = req.body;
+
+    if (!questionIds || !Array.isArray(questionIds) || questionIds.length === 0) {
+        throw new Error('Invalid question IDs array');
+    }
+
+    return handleTransaction(async (session) => {
+        // Fetch all questions to be deleted
+        const questions = await QuestionModel.find({
+            _id: { $in: questionIds }
+        }).session(session);
+
+        if (questions.length === 0) {
+            throw new Error('No questions found to delete');
+        }
+
+        // Group questions by testId and calculate stats
+        const testUpdates = {};
+        questions.forEach((question) => {
+            const testId = question.test.toString();
+            if (!testUpdates[testId]) {
+                testUpdates[testId] = {
+                    count: 0,
+                    totalMarks: 0
+                };
+            }
+            testUpdates[testId].count += 1;
+            testUpdates[testId].totalMarks += question.positiveMarks;
+        });
+
+        // Update each test's stats
+        for (const [testId, stats] of Object.entries(testUpdates)) {
+            const test = await TestModel.findById(testId).session(session);
+            if (test) {
+                test.totalQuestions -= stats.count;
+                test.totalMarks -= stats.totalMarks;
+                await test.save({ session });
+            }
+        }
+
+        // Delete all questions
+        await QuestionModel.deleteMany({
+            _id: { $in: questionIds }
+        }).session(session);
+
+        return {
+            message: `Successfully deleted ${questions.length} questions`,
+            deletedCount: questions.length
+        };
+    });
+});
