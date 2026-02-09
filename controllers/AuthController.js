@@ -3,11 +3,16 @@ import ExamModel from '../models/ExamModel.js';
 import SubExamModel from '../models/SubExamModel.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import transporter from '../config/emailConfig.js'
+// import transporter from '../config/emailConfig.js'
 import handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
 import cloudinary from '../cloudinaryConfig/cloudinaryConfig.js';
+import { Resend } from 'resend';
+import dotenv from 'dotenv'
+dotenv.config()
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Helper Functions
 const checkUserExists = async (email, phone) => {
@@ -49,12 +54,28 @@ const validatePhone = (phone) => {
 const generateAndSendOTP = async (email) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     const html = await compileEmailTemplate(otp, "Email Verification");
-    transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: email,
-        subject: `${otp} is your OTP for email verification on EdTech`,
-        html: html
-    });
+    // transporter.sendMail({
+    //     from: process.env.EMAIL_FROM,
+    //     to: email,
+    //     subject: `${otp} is your OTP for email verification on EdTech`,
+    //     html: html
+    // });
+
+    (async function () {
+        const { data, error } = await resend.emails.send({
+            from: 'EdTech <onboarding@resend.dev>',
+            to: [email],
+            subject: `${otp} is your OTP for email verification on EdTech`,
+            html: html,
+        });
+
+        if (error) {
+            return console.error({ error });
+        }
+
+        console.log({ data });
+    })();
+
     return otp;
 };
 
@@ -187,13 +208,27 @@ export const loginUser = async (req, res) => {
             user.otpCreatedAt = new Date();
             await user.save();
 
-            await transporter.sendMail({
-                from: process.env.EMAIL_FROM,
-                to: user.email,
-                subject: "EdTech - Login Verification OTP",
-                html: `<h1>Your login verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
-            });
+            // await transporter.sendMail({
+            //     from: process.env.EMAIL_FROM,
+            //     to: user.email,
+            //     subject: "EdTech - Login Verification OTP",
+            //     html: `<h1>Your login verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
+            // });
 
+            (async function () {
+                const { data, error } = await resend.emails.send({
+                    from: 'EdTech <onboarding@resend.dev>',
+                    to: [user.email],
+                    subject: `EdTech - Login Verification OTP`,
+                    html: `<h1>Your login verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`,
+                });
+
+                if (error) {
+                    return console.error({ error });
+                }
+
+                console.log({ data });
+            })();
 
             return res.status(200).json({
                 status: "success",
@@ -295,12 +330,27 @@ export const verifyOTP = async (req, res) => {
         const template = handlebars.compile(source);
         const html = template({ name: user.name });
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: user.email,
-            subject: "EdTech - Email Verification Successful",
-            html: html
-        });
+        // await transporter.sendMail({
+        //     from: process.env.EMAIL_FROM,
+        //     to: user.email,
+        //     subject: "EdTech - Email Verification Successful",
+        //     html: html
+        // });
+
+        (async function () {
+            const { data, error } = await resend.emails.send({
+                from: 'EdTech <onboarding@resend.dev>',
+                to: [user.email],
+                subject: `EdTech - Email Verification Successful`,
+                html: html,
+            });
+
+            if (error) {
+                return console.error({ error });
+            }
+
+            console.log({ data });
+        })();
 
         user.isUserVerified = true;
         user.otp = otp;
@@ -379,12 +429,27 @@ export const changePassword = async (req, res) => {
         await user.save();
 
         // Send password change notification email
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: user.email,
-            subject: 'EdTech - Password Changed Successfully',
-            html: '<h1>Your password has been changed successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
-        });
+        // await transporter.sendMail({
+        //     from: process.env.EMAIL_FROM,
+        //     to: user.email,
+        //     subject: 'EdTech - Password Changed Successfully',
+        //     html: '<h1>Your password has been changed successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
+        // });
+
+        (async function () {
+            const { data, error } = await resend.emails.send({
+                from: 'EdTech <onboarding@resend.dev>',
+                to: [email],
+                subject: `EdTech - Password Changed Successfully`,
+                html: '<h1>Your password has been changed successfully</h1><p>If you did not make this change, please contact support immediately.</p>',
+            });
+
+            if (error) {
+                return console.error({ error });
+            }
+
+            console.log({ data });
+        })();
 
         res.status(200).json({
             status: 'success',
@@ -431,12 +496,27 @@ export const sendUserPasswordResetEmail = async (req, res) => {
         const purpose = 'Reset Password';
         const html = template({ otp, purpose });
 
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: email,
-            subject: `${otp} is your OTP for password reset on EdTech`,
-            html: html
-        });
+        // await transporter.sendMail({
+        //     from: process.env.EMAIL_FROM,
+        //     to: email,
+        //     subject: `${otp} is your OTP for password reset on EdTech`,
+        //     html: html
+        // });
+
+        (async function () {
+            const { data, error } = await resend.emails.send({
+                from: 'EdTech <onboarding@resend.dev>',
+                to: [email],
+                subject: `${otp} is your OTP for password reset on EdTech`,
+                html: html,
+            });
+
+            if (error) {
+                return console.error({ error });
+            }
+
+            console.log({ data });
+        })();
 
         user.otp = otp;
         user.otpCreatedAt = new Date();
@@ -520,12 +600,27 @@ export const userPasswordReset = async (req, res) => {
         await user.save();
 
         // Send confirmation email
-        await transporter.sendMail({
-            from: process.env.EMAIL_FROM,
-            to: user.email,
-            subject: 'EdTech - Password Reset Successful',
-            html: '<h1>Your password has been reset successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
-        });
+        // await transporter.sendMail({
+        //     from: process.env.EMAIL_FROM,
+        //     to: user.email,
+        //     subject: 'EdTech - Password Reset Successful',
+        //     html: '<h1>Your password has been reset successfully</h1><p>If you did not make this change, please contact support immediately.</p>'
+        // });
+
+        (async function () {
+            const { data, error } = await resend.emails.send({
+                from: 'EdTech <onboarding@resend.dev>',
+                to: [email],
+                subject: `EdTech - Password Reset Successful`,
+                html: '<h1>Your password has been reset successfully</h1><p>If you did not make this change, please contact support immediately.</p>',
+            });
+
+            if (error) {
+                return console.error({ error });
+            }
+
+            console.log({ data });
+        })();
 
         res.status(200).json({
             status: 'success',
@@ -699,12 +794,27 @@ export const sendOtpAgain = async (req, res) => {
     user.otpCreatedAt = new Date();
     await user.save();
 
-    await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: user.email,
-        subject: "EdTech - Verification OTP",
-        html: `<h1>Your verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
-    });
+    // await transporter.sendMail({
+    //     from: process.env.EMAIL_FROM,
+    //     to: user.email,
+    //     subject: "EdTech - Verification OTP",
+    //     html: `<h1>Your verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>`
+    // });
+
+    (async function () {
+        const { data, error } = await resend.emails.send({
+            from: 'EdTech <onboarding@resend.dev>',
+            to: [email],
+            subject: `EdTech - Verification OTP`,
+            html: "<h1>Your verification OTP is: ${otp}</h1><p>This OTP will expire in 15 minutes.</p>",
+        });
+
+        if (error) {
+            return console.error({ error });
+        }
+
+        console.log({ data });
+    })();
 
     res.status(200).json({
         status: 'success',
