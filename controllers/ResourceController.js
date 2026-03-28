@@ -149,12 +149,41 @@ export const getAllResources = async (req, res) => {
 
 export const getResourcesBySubExamId = async (req, res) => {
     const { subExamId } = req.params;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+    const { title } = req.query;
+
     try {
-        const resources = await ResourceModel.find({ subExam: subExamId });
-        if (!resources) {
-            return res.status(404).json({ message: 'Resources not found' });
+        const filter = { subExam: subExamId };
+        if (title) {
+            filter.title = { $regex: title, $options: 'i' };
         }
-        res.status(200).json({ message: 'Resources found successfully', resources });
+
+        const totalDocs = await ResourceModel.countDocuments(filter);
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = ResourceModel.find(filter)
+            .skip(skip)
+            .limit(limit);
+
+        if (req.admin) {
+            query = query.populate('exam').populate('subExam');
+        }
+
+        const resources = await query;
+
+        res.status(200).json({
+            message: 'Resources found successfully',
+            resources,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: 'Failed to get resources', error: error.message });
     }

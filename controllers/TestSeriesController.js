@@ -157,11 +157,41 @@ export const getAllTestSeries = async (req, res) => {
 // Get TestSeries by SubCategory ID
 export const getTestSeriesBySubExamId = async (req, res) => {
     const { subExamId } = req.params;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+    const { name } = req.query;
 
     try {
-        const TestSeries = await TestSeriesModel.find({ subExam: subExamId });
+        const filter = { subExam: subExamId };
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' };
+        }
 
-        res.status(200).json({ message: 'TestSeries found successfully', TestSeries });
+        const totalDocs = await TestSeriesModel.countDocuments(filter);
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = TestSeriesModel.find(filter)
+            .skip(skip)
+            .limit(limit);
+
+        if (req.admin) {
+            query = query.populate('subExam');
+        }
+
+        const testSeries = await query;
+
+        res.status(200).json({
+            message: 'TestSeries found successfully',
+            testSeries,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
     } catch (error) {
         console.error('Error fetching TestSeries:', error);
         res.status(500).json({ message: 'Failed to get TestSeries', error });

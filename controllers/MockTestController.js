@@ -121,15 +121,41 @@ export const getAllMockTests = async (req, res) => {
 // Get MockTests by TestSeries ID
 export const getMockTestsByTestSeriesId = async (req, res) => {
     const { testSeriesId } = req.params;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip = (page - 1) * limit;
+    const { name } = req.query;
 
     try {
-        const MockTests = await MockTestModel.find({ testSeries: testSeriesId });
-
-        if (!MockTests) {
-            return res.status(404).json({ message: 'MockTests not found' });
+        const filter = { testSeries: testSeriesId };
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' };
         }
 
-        res.status(200).json({ message: 'MockTests found successfully', MockTests });
+        const totalDocs = await MockTestModel.countDocuments(filter);
+        const totalPages = Math.ceil(totalDocs / limit);
+
+        let query = MockTestModel.find(filter)
+            .skip(skip)
+            .limit(limit);
+
+        if (req.admin) {
+            query = query.populate('testSeries');
+        }
+
+        const mockTests = await query;
+
+        res.status(200).json({
+            message: 'MockTests found successfully',
+            mockTests,
+            pagination: {
+                currentPage: page,
+                totalPages,
+                totalDocs,
+                hasPrevPage: page > 1,
+                hasNextPage: page < totalPages
+            }
+        });
     } catch (error) {
         console.error('Error fetching MockTests:', error);
         res.status(500).json({ message: 'Failed to get MockTests', error });
