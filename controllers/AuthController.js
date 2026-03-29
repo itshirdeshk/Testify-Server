@@ -63,7 +63,7 @@ const generateAndSendOTP = async (email) => {
 
     (async function () {
         const { data, error } = await resend.emails.send({
-            from: 'EdTech <onboarding@resend.dev>',
+            from: 'EdTech <yourname@tejovah.com>',
             to: [email],
             subject: `${otp} is your OTP for email verification on EdTech`,
             html: html,
