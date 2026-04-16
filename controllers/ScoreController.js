@@ -8,6 +8,9 @@ const calculateScoreStats = async (totalCorrect, totalIncorrect, totalQuestionsA
     const test = await TestModel.findById(testId);
     if (!test) throw new Error('Test not found');
 
+    console.log(test);
+    
+
     // Calculate marks
     const totalMarksObtained = (totalCorrect * test.positiveMarks) - (totalIncorrect * test.negativeMarks);
     const maxPossibleMarks = test.totalQuestions * test.positiveMarks;
@@ -86,6 +89,9 @@ export const createScore = handleAsync(async (req) => {
 
     try {
         const stats = await calculateScoreStats(totalCorrect, totalIncorrect, totalQuestionsAttempted, testId);
+
+        console.log(stats);
+        
 
         // Create score within the transaction
         const score = await ScoreModel.create([{
@@ -261,24 +267,3 @@ export const getScoresByTestId = handleAsync(async (req) => {
     if (!score) throw new Error('Scores not found');
     return { message: 'Score found successfully', data: score };
 });
-
-// // Get Scores by User ID
-// export const getScoresByUserId = async (req, res) => {
-//     const user = req.user;
-//     if (!user) {
-//         return res.status(401).json({ message: 'Unauthorized Access' });
-//     }
-
-//     try {
-//         const scores = await ScoreModel.find({ user: user._id });
-
-//         if (!scores) {
-//             return res.status(404).json({ message: 'Scores not found' });
-//         }
-
-//         res.status(200).json({ message: 'Scores found successfully', scores });
-//     } catch (error) {
-//         console.error('Error fetching Scores:', error);
-//         res.status(500).json({ message: 'Failed to get Scores', error });
-//     }
-// };

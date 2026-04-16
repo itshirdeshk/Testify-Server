@@ -6,7 +6,7 @@ const QuestionSchema = new Schema(
     {
         title: { type: String, required: true },
         options: [{ text: { type: String, required: true }, isCorrect: { type: Boolean, default: false } }], // Enhanced option structure
-        positiveMarks: { type: Number, required: true, min: 0 },
+        positiveMarks: { type: Number, default: 0, min: 0 },
         negativeMarks: { type: Number, default: 0, min: 0 },
         test: { type: mongoose.Schema.Types.ObjectId, ref: 'Test', required: true },
     },

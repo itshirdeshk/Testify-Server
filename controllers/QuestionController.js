@@ -37,7 +37,7 @@ const updateTestStats = async ({ testId, positiveMarks, session, increment = 1 }
     if (!test) throw new Error('Test not found');
 
     test.totalQuestions += increment;
-    test.totalMarks += (positiveMarks * increment);
+    test.totalMarks += (test.positiveMarks * increment);
     await test.save({ session });
 };
 
