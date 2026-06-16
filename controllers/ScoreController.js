@@ -3,17 +3,33 @@ import LeaderboardModel from '../models/LeaderboardModel.js';
 import ScoreModel from '../models/ScoreModel.js';
 import TestModel from '../models/TestModel.js';
 
-const calculateScoreStats = async (totalCorrect, totalIncorrect, totalQuestionsAttempted, testId) => {
+const calculateScoreStats = async (totalCorrectVal, totalIncorrectVal, totalQuestionsAttemptedVal, testId) => {
     // Get test details first
     const test = await TestModel.findById(testId);
     if (!test) throw new Error('Test not found');
 
     console.log(test);
-    
+
+    // Parse input values to numbers safely
+    const totalCorrect = Number(totalCorrectVal) || 0;
+    const totalIncorrect = Number(totalIncorrectVal) || 0;
+    const totalQuestionsAttempted = Number(totalQuestionsAttemptedVal) || 0;
+
+    const testTotalQuestions = Number(test.totalQuestions) || 0;
+    const testTotalMarks = Number(test.totalMarks) || 0;
+
+    // Determine positive and negative marks per question, fallback to derived/defaults if missing/NaN
+    const positiveMarks = (test.positiveMarks !== undefined && test.positiveMarks !== null && !isNaN(Number(test.positiveMarks)))
+        ? Number(test.positiveMarks)
+        : (testTotalQuestions > 0 ? (testTotalMarks / testTotalQuestions) : 0);
+
+    const negativeMarks = (test.negativeMarks !== undefined && test.negativeMarks !== null && !isNaN(Number(test.negativeMarks)))
+        ? Number(test.negativeMarks)
+        : 0;
 
     // Calculate marks
-    const totalMarksObtained = (totalCorrect * test.positiveMarks) - (totalIncorrect * test.negativeMarks);
-    const maxPossibleMarks = test.totalQuestions * test.positiveMarks;
+    const totalMarksObtained = (totalCorrect * positiveMarks) - (totalIncorrect * negativeMarks);
+    const maxPossibleMarks = testTotalQuestions * positiveMarks;
 
     // Calculate basic stats
     const accuracy = totalQuestionsAttempted > 0
@@ -31,16 +47,16 @@ const calculateScoreStats = async (totalCorrect, totalIncorrect, totalQuestionsA
 
     // Calculate average score
     const averageScore = allScores.length > 0
-        ? (allScores.reduce((sum, score) => sum + score.totalMarksObtained, 0) / allScores.length).toFixed(2)
+        ? (allScores.reduce((sum, score) => sum + (Number(score.totalMarksObtained) || 0), 0) / allScores.length).toFixed(2)
         : totalMarksObtained;
 
     // Calculate best score
     const bestScore = allScores.length > 0
-        ? Math.max(parseFloat(totalMarksObtained), ...allScores.map(score => score.totalMarksObtained))
+        ? Math.max(parseFloat(totalMarksObtained), ...allScores.map(score => Number(score.totalMarksObtained) || 0))
         : totalMarksObtained;
 
     // Calculate rank and percentile
-    const sortedScores = [...allScores.map(s => s.percentage), parseFloat(percentage)]
+    const sortedScores = [...allScores.map(s => Number(s.percentage) || 0), parseFloat(percentage)]
         .sort((a, b) => b - a);
 
     const rank = sortedScores.indexOf(parseFloat(percentage)) + 1;
